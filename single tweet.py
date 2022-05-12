@@ -1,6 +1,5 @@
 import tweepy
 
-
 # API keyws that yous saved earlier - consumer
 api_key = 'vlY9i6EAhbLvsXkN20CaDjImR'
 api_secrets = 'y1LDLRIeKKhBSeGGAQBXR82nO58EBR7TTKAEBc1km1nyqkb5BQ'
