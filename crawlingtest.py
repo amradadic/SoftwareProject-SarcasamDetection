@@ -35,9 +35,10 @@ for row in csvreader:
     single_row.append(row[1])
     counter = counter + 1
     try:
-        status = api.get_status(id)
+        #status = api.get_status(id)
+        status = api.get_status(id, tweet_mode="extended")
         # fetching the text attribute
-        text = status.text
+        text = status.full_text
         single_row.append(text)
         single_row.append(row[2])
         #print("The text of the status is : \n\n" + text)
