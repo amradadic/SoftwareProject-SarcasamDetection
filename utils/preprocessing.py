@@ -5,9 +5,11 @@ import re
 import emoji
 from gensim.parsing.preprocessing import remove_stopwords
 
-def remove_na_tweets(df):
-    df = df.dropna(subset = ['sar_text'])
+def remove_na_from_column(df, column_name):
+    df = df.dropna(subset = [column_name])
     df = df.reset_index(drop = True)
+
+    return df
 
 EMOJI_DESCRIPTION_SCRUB = re.compile(r':(\S+?):')
 HASHTAG_BEFORE = re.compile(r'#(\S+)')
@@ -15,10 +17,14 @@ FIND_MENTIONS = re.compile(r'@(\S+)')
 LEADING_NAMES = re.compile(r'^\s*((?:@\S+\s*)+)')
 TAIL_NAMES = re.compile(r'\s*((?:@\S+\s*)+)$')
 
-def preprocess_data(df):
-    df['sar_text'] = df['sar_text'].apply(process_tweet)
+def preprocess_tweets(df, column_name='tweet'):
+    df[column_name] = df[column_name].transform(process_tweet)
+
+    return df
 
 def process_tweet(s, keep_emoji=False, keep_usernames=False):
+
+    s = s.lower()
 
     #removing urls, htmls tags, etc
     s = re.sub(r'https\S+', r'', str(s))

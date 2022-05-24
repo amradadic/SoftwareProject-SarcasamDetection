@@ -1,40 +1,58 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from nltk.corpus import stopwords
-import nltk
-nltk.download('stopwords')
+import wordcloud
 from wordcloud import WordCloud
 
 def n_sar_nonsar_tweets(df):
-    sarcastic_count = len(df[df.sarcasm_label=="sarcastic"])
-    nonsarcastic_count = len(df[df.sarcasm_label=="not_sarcastic"])
+    sarcastic_count = len(df[df.label==1])
+    nonsarcastic_count = len(df[df.label==0])
     print("SPIRS - sarcastic tweet count: " + str(sarcastic_count))
     print("SPIRS - non sarcastic tweet count: " + str(nonsarcastic_count))
 
 def tweet_length_graph(df):
-    df_sarcastic = df[df.sarcasm_label=="sarcastic"]
-    df_nonsarcastic = df[df.sarcasm_label=="not_sarcastic"]
+    df_sarcastic = df[df.label==1]
+    df_nonsarcastic = df[df.label==0]
 
-    df_sarcastic['sar_text'].str.len().hist(label='Sarcastic tweets')
-    df_nonsarcastic['sar_text'].str.len().hist(color='Nonsarcastic tweets')
+    fig, axes = plt.subplots(1, 2)
+    fig.suptitle("Average tweet length", fontsize=14)
+    axes[0].set_title('Sarcastic tweets')
+    axes[0].set_xlabel('Length')
+    axes[0].set_ylabel('Number of tweets')
+    axes[1].set_title('Nonsarcastic tweets')
+    axes[1].set_xlabel('Length')
+    axes[1].set_ylabel('Number of tweets')
+    
+    df_sarcastic['tweet'][1:2000].str.len().hist(ax=axes[0], bins=10, range=(0,600), color='pink')
+    df_nonsarcastic['tweet'][1:2000].str.len().hist(bins=10, ax=axes[1], range=(0,600))
+    plt.show() 
+
 
 def word_length_graph(df):
-    df_sarcastic = df[df.sarcasm_label=="sarcastic"]
-    df_nonsarcastic = df[df.sarcasm_label=="not_sarcastic"]
+    df_sarcastic = df[df.label==1]
+    df_nonsarcastic = df[df.label==0]
+    
+    fig, axes = plt.subplots(1, 2)
+    fig.suptitle("Average word length", fontsize=14)
+    axes[0].set_title('Sarcastic tweets')
+    axes[0].set_xlabel('Length')
+    axes[0].set_ylabel('Number of words')
+    axes[1].set_title('Nonsarcastic tweets')
+    axes[1].set_xlabel('Length')
+    axes[1].set_ylabel('Number of words')
 
-    df_sarcastic['sar_text'].str.split().apply(lambda x : [len(i) for i in x]).map(lambda x: np.mean(x)).hist()
-    df_nonsarcastic['sar_text'].str.split().apply(lambda x : [len(i) for i in x]).map(lambda x: np.mean(x)).hist()
+    df_sarcastic['tweet'][1:2000].str.split().apply(lambda x : [len(i) for i in x]).map(lambda x: np.mean(x)).hist(ax=axes[0], range=(0,60), color = 'pink')
+    df_nonsarcastic['tweet'][1:2000].str.split().apply(lambda x : [len(i) for i in x]).map(lambda x: np.mean(x)).hist(ax=axes[1], range=(0,60))
+
+    plt.show()
 
 def wordcloud(df):
     #uporredit rezultat s dzenetinim
-    stopwords=set(stopwords.words('english'))
 
-    text = " ".join(tweet for tweet in df_SPIRS_sarcastic.sar_text)
+    text = " ".join(tweet for tweet in df.tweet)
 
     wordcloud = WordCloud(
             background_color='white',
-            stopwords=stopwords,
             max_words=100,
             max_font_size=30,
             scale=3,
