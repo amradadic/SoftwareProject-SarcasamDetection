@@ -13,7 +13,6 @@ print("\nNon-sarcastic tweets df info:")
 print(df_SPIRS_non_sarcastic.info())
 
 
-
 ##PREPROCESSING
 
 #make new dataframe - only tweets and labels, both sarcastic and nonsarcastic tweets
