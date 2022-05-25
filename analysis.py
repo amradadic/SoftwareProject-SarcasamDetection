@@ -51,5 +51,8 @@ analysis.word_length_graph(df_SPIRS)
 #wordcloud of sarcastic tweets
 analysis.wordcloud(df_SPIRS[df_SPIRS.label==1])
 
+analysis.draw_plot_for_common_ngrams(df_SPIRS[tweets], 1, 20, "Unigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS[tweets], 2, 20, "Bigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS[tweets], 3, 20, "Trigrams")
 
 # %%
