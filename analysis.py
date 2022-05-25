@@ -1,3 +1,4 @@
+#%%
 import pandas as pd
 import numpy as np
 from utils import analysis
@@ -32,8 +33,11 @@ print('\n\n\n')
 df_SPIRS = preprocessing.remove_na_from_column(df_SPIRS, 'tweet')
 
 #preprocessing tweets
+df_SPIRS_no_emojis = df_SPIRS.copy()
+df_SPIRS_no_emojis = preprocessing.preprocess_tweets(df_SPIRS_no_emojis, keep_emoji=False)
+
 df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS)
-print(df_SPIRS.head())
+
 
 
 
@@ -48,11 +52,20 @@ analysis.tweet_length_graph(df_SPIRS)
 #average word length graphs - first 2000 sarcastic and 2000 nonsarcastic tweets
 analysis.word_length_graph(df_SPIRS)
 
-#wordcloud of sarcastic tweets
+#wordcloud of sarcastic tweets with emojis
 analysis.wordcloud(df_SPIRS[df_SPIRS.label==1])
 
-analysis.draw_plot_for_common_ngrams(df_SPIRS[tweets], 1, 20, "Unigrams")
-analysis.draw_plot_for_common_ngrams(df_SPIRS[tweets], 2, 20, "Bigrams")
-analysis.draw_plot_for_common_ngrams(df_SPIRS[tweets], 3, 20, "Trigrams")
+#wordcloud of sarcastic tweets without emojis
+analysis.wordcloud(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1])
+
+#ngrams of sarcastic with emojis
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 1, 20, "Unigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 2, 20, "Bigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 3, 20, "Trigrams")
+
+#ngrams of sarcastic withoud emojis
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 1, 20, "Unigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 2, 20, "Bigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 3, 20, "Trigrams")
 
 # %%

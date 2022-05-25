@@ -17,12 +17,12 @@ FIND_MENTIONS = re.compile(r'@(\S+)')
 LEADING_NAMES = re.compile(r'^\s*((?:@\S+\s*)+)')
 TAIL_NAMES = re.compile(r'\s*((?:@\S+\s*)+)$')
 
-def preprocess_tweets(df, column_name='tweet'):
-    df[column_name] = df[column_name].transform(process_tweet)
+def preprocess_tweets(df, column_name='tweet', keep_emoji = True):
+    df[column_name] = df[column_name].transform(func = process_tweet, keep_emoji=keep_emoji)
 
     return df
 
-def process_tweet(s, keep_emoji=False, keep_usernames=False):
+def process_tweet(s, keep_emoji=True, keep_usernames=False):
 
     s = s.lower()
 
@@ -41,15 +41,31 @@ def process_tweet(s, keep_emoji=False, keep_usernames=False):
     s = remove_stopwords(s)
 
     #removing emojis
-    s = emoji.demojize(s)
-
     if keep_emoji:
-        s = s.replace('face_with', '')
-        s = s.replace('face_', '')
-        s = s.replace('_face', '')
-        s = re.sub(EMOJI_DESCRIPTION_SCRUB, r' \1 ', s)
-        s = s.replace('(_', '(')
-        s = s.replace('_', ' ')
+        s = emoji.demojize(s)
+    else:
+        emoj = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+        u"\U00002500-\U00002BEF"  # chinese char
+        u"\U00002702-\U000027B0"
+        u"\U00002702-\U000027B0"
+        u"\U000024C2-\U0001F251"
+        u"\U0001f926-\U0001f937"
+        u"\U00010000-\U0010ffff"
+        u"\u2640-\u2642" 
+        u"\u2600-\u2B55"
+        u"\u200d"
+        u"\u23cf"
+        u"\u23e9"
+        u"\u231a"
+        u"\ufe0f"  # dingbats
+        u"\u3030"
+                      "]+", re.UNICODE)
+
+        s = emoj.sub(r'',s)
 
  #   s = re.sub(r"\\x[0-9a-z]{2,3,4}", "", s)
 
