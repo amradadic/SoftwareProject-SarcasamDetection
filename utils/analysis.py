@@ -88,7 +88,7 @@ def draw_plot_for_common_ngrams(text, n=1, number_of_common=20, title = "Common 
     temp = pd.DataFrame(columns=["Common_words", "Count"])
     temp["Common_words"] = list(most_common.keys())
     temp["Count"] = list(most_common.values())
-    fig = px.bar(temp, x="Count", y="Common_words", title="Common " + name_of_ngram + " in Text", orientation='h', width = 1200,
+    fig = px.bar(temp, x="Count", y="Common_words", title= title, orientation='h', width = 1200,
                 color='Common_words', color_discrete_sequence=px.colors.qualitative.Plotly)
     
     fig.layout.showlegend = False
