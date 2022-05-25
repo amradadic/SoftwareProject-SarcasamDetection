@@ -3,6 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import wordcloud
 from wordcloud import WordCloud
+from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
+import plotly.express as px
+
 
 def n_sar_nonsar_tweets(df):
     sarcastic_count = len(df[df.label==1])
@@ -65,3 +68,26 @@ def wordcloud(df):
 
     plt.imshow(wordcloud, interpolation = 'bilinear')
     plt.show()
+
+
+def get_top_text_ngrams(corpus, n, g, mode=1):
+    if mode == 2:
+        vec = TfidfVectorizer(ngram_range=(g, g)).fit(corpus)
+    else:
+        vec = CountVectorizer(ngram_range=(g, g)).fit(corpus)
+    bag_of_words = vec.transform(corpus)
+    sum_words = bag_of_words.sum(axis=0)
+    words_freq = [(word, sum_words[0, idx]) for word, idx in vec.vocabulary_.items()]
+    words_freq = sorted(words_freq, key=lambda x: x[1], reverse=True)
+    return words_freq[:n]
+
+
+def draw_plot_for_common_ngrams(text, n=1, number_of_common=20, name_of_ngram="N-gram", mode=1):
+    most_common = get_top_text_ngrams(text, number_of_common, n, 2)
+    most_common = dict(most_common)
+    temp = pd.DataFrame(columns=["Common_words", "Count"])
+    temp["Common_words"] = list(most_common.keys())
+    temp["Count"] = list(most_common.values())
+    fig = px.bar(temp, x="Count", y="Common_words", title="Common " + name_of_ngram + " in Text", orientation='h',
+                 width=700, height=700, color='Common_words', color_discrete_sequence=px.colors.qualitative.Plotly)
+    fig.show()
