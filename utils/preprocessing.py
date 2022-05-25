@@ -4,6 +4,13 @@ import matplotlib.pyplot as plt
 import re
 import emoji
 from gensim.parsing.preprocessing import remove_stopwords
+import nltk
+nltk.download('punkt')
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import string
+string.punctuation
+
 
 def remove_na_from_column(df, column_name):
     df = df.dropna(subset = [column_name])
@@ -18,7 +25,7 @@ LEADING_NAMES = re.compile(r'^\s*((?:@\S+\s*)+)')
 TAIL_NAMES = re.compile(r'\s*((?:@\S+\s*)+)$')
 
 def preprocess_tweets(df, column_name='tweet', keep_emoji = True):
-    df[column_name] = df[column_name].transform(func = process_tweet, keep_emoji=keep_emoji)
+    df[column_name] = df[column_name].transform(func = process_tweet, keep_emoji=keep_emoji, keep_usernames=False)
 
     return df
 
@@ -98,3 +105,36 @@ def process_tweet(s, keep_emoji=True, keep_usernames=False):
     s = ' '.join(s.split())
 
     return s
+
+def remove_punctiation(df, column_name='tweet'):
+    df[column_name] = df[column_name].transform(remove_punctuation)
+
+    return df
+    
+def remove_punctuation(text):
+    if(type(text)==float):
+        return text
+    
+    ans=""  
+    for i in text:     
+        if i not in string.punctuation:
+            ans+=i    
+            
+    return ans
+
+def remove_nltk_stopwords(df, column_name='tweet') :
+    df[column_name] = df[column_name].transform(remove_nltk_stopwords_from_tweet)
+
+    return df
+    
+    
+def remove_nltk_stopwords_from_tweet(s):
+    stop_words = set(stopwords.words('english'))
+    word_tokens = word_tokenize(s)
+    tokens_without_sw = [word for word in word_tokens if not word in stop_words]
+    
+    s = (" ").join(tokens_without_sw)
+    
+    return s
+    
+    

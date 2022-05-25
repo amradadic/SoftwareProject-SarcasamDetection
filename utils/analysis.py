@@ -81,7 +81,7 @@ def get_top_text_ngrams(corpus, n, g, mode=1):
     words_freq = sorted(words_freq, key=lambda x: x[1], reverse=True)
     return words_freq[:n]
 
-
+#mode 2 - TF-ID
 def draw_plot_for_common_ngrams(text, n=1, number_of_common=20, name_of_ngram="N-gram", mode=1):
     most_common = get_top_text_ngrams(text, number_of_common, n, 2)
     most_common = dict(most_common)

@@ -37,6 +37,7 @@ df_SPIRS_no_emojis = df_SPIRS.copy()
 df_SPIRS_no_emojis = preprocessing.preprocess_tweets(df_SPIRS_no_emojis, keep_emoji=False)
 
 df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS)
+print(df_SPIRS.head())
 
 
 
@@ -58,14 +59,20 @@ analysis.wordcloud(df_SPIRS[df_SPIRS.label==1])
 #wordcloud of sarcastic tweets without emojis
 analysis.wordcloud(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1])
 
+
+#for ngrams - remove punctiation and nltk stopwords
+#df_SPIRS = preprocessing.r(df_SPIRS)
+#df_SPIRS = preprocessing.remove_nltk_stopwords(df_SPIRS)
+#df_SPIRS_no_emojis = preprocessing.remove_nltk_stopwords(df_SPIRS_no_emojis)
+
 #ngrams of sarcastic with emojis
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 1, 20, "Unigrams")
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 2, 20, "Bigrams")
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 3, 20, "Trigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 1, 20, "Unigrams", 2)
+#analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 2, 20, "Bigrams", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 3, 20, "Trigrams", 2)
 
 #ngrams of sarcastic withoud emojis
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 1, 20, "Unigrams")
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 2, 20, "Bigrams")
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 3, 20, "Trigrams")
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 1, 20, "Unigrams",2)
+#analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 2, 20, "Bigrams", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 3, 20, "Trigrams", 2)
 
 # %%
