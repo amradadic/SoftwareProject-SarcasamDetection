@@ -2,11 +2,13 @@ import numpy as np
 import json
 from os import path
 import math
+from matplotlib import pyplot as plt
 from sklearn import metrics as m
 import pandas as pd
 import math
 from sklearn.model_selection import train_test_split
 from utils import preprocessing
+
 
 # makes dataframe and does preprocessing
 def preparing_data(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic):
@@ -63,7 +65,7 @@ def metrics(y_test, y_pred, target_names):
     return dict_confusion | dict_report
 
 
-def json_predictions(file_name, prediction_model, converting_method, metrics, df):
+def json_metrics(file_name, prediction_model, converting_method, metrics, df):
     dictionary = {'Model': prediction_model,
                   'Method for converting text data': converting_method,
                   'Metrics': metrics,
@@ -80,3 +82,17 @@ def json_predictions(file_name, prediction_model, converting_method, metrics, df
     else:
         with open(file_name, 'w') as json_file:
             json.dump([dictionary], json_file, indent=4)
+
+
+def plot_coefficients(classifier, feature_names, top_features=10):
+    coef = classifier.coef_.ravel()
+    top_positive_coefficients = np.argsort(coef)[-top_features:]
+    top_negative_coefficients = np.argsort(coef)[:top_features]
+    top_coefficients = np.hstack([top_negative_coefficients, top_positive_coefficients])
+
+    plt.figure(figsize=(10, 5))
+    colors = ['red' if c < 0 else 'blue' for c in coef[top_coefficients]]
+    plt.bar(np.arange(2 * top_features), coef[top_coefficients], color=colors)
+    feature_names = np.array(feature_names)
+    plt.xticks(np.arange(1, 1 + 2 * top_features), feature_names[top_coefficients], rotation=60, ha='right')
+    plt.show()
