@@ -52,6 +52,9 @@ def scrape_user_tweets(user_id, max_tweets):
 #id =1086119014131208193 #primjer 1
 id = 710122230911520768 #primjer 2
 status = api.get_status(id)
+print(status.user.name)
+print(status.user.screen_name)
+print(status.user.location)
 #id korisnika na twittweru
 user_id = status.user.id
 max_tweets = 2
