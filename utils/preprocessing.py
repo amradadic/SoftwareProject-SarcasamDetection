@@ -11,6 +11,7 @@ from nltk.tokenize import word_tokenize
 import string
 string.punctuation
 from sklearn.feature_extraction.text import TfidfVectorizer
+from utils import glove
 
 
 def remove_na_from_column(df, column_name):
@@ -196,6 +197,22 @@ def get_tfidf_context(df_train, df_test) :
 
     
     return tfidf_train, tfidf_test
+
+
+
+def get_glove_embedding(df_train, df_test):
+    model = glove.load_glove()
+    
+    # Set a word vectorizer
+    vectorizer = glove.GloveVectorizer(model)
+    # Get the sentence embeddings for the train dataset
+    Xtrain = vectorizer.fit_transform(df_train)
+    # Get the sentence embeddings for the test dataset
+    Xtest = vectorizer.transform(df_test)
+    
+    return Xtrain, Xtest
+    
+        
 
     
     
