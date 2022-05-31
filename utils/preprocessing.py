@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import string
 string.punctuation
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 def remove_na_from_column(df, column_name):
@@ -136,5 +137,65 @@ def remove_nltk_stopwords_from_tweet(s):
     s = (" ").join(tokens_without_sw)
     
     return s
+
+
+#returns dataframe with columns sar_text, 'obl_text', 'elicit text' [and 'cue text']
+def get_df_context(df, cue = False) :
+    
+    if cue:
+        if 'cue_text' in df.columns:
+            df = df[['sar_text', 'obl_text', 'eli_text', 'cue_text']]
+        else :
+            df = df[['sar_text', 'obl_text', 'eli_text']]
+            df = df.assign(cue_text='')
+        
+    else :
+        df = df[['sar_text', 'obl_text', 'eli_text']]
+        
+    # fill na values    
+    df['obl_text'] = df['obl_text'].fillna('')
+    df['eli_text'] = df['eli_text'].fillna('')
+    
+    if cue:
+        df['cue_text'] = df['cue_text'].fillna('')
+        
+    return df
+
+def vectorize(xs, vectorizer=TfidfVectorizer(min_df=1, stop_words="english")):
+    text = [' '.join(x) for x in xs]
+    return vectorizer.fit_transform(text)
+    
+
+def get_tfidf_context(df_train, df_test) :
+    
+    ncol = df_train.shape[1]
+ 
+    tfidf = TfidfVectorizer()
+    tfidf.fit(df_train['sar_text'])
+    
+    tfidf_train_sar = tfidf.transform(df_train['sar_text'])
+    tfidf_train_eli = tfidf.transform(df_train['eli_text'])
+    tfidf_train_obl = tfidf.transform(df_train['obl_text'])
+
+    tfidf_test_sar = tfidf.transform(df_test['sar_text'])
+    tfidf_test_eli = tfidf.transform(df_test['eli_text'])
+    tfidf_test_obl = tfidf.transform(df_test['obl_text'])
+    
+    #cue = True
+    if ncol == 4:
+        tfidf_train_cue = tfidf.transform(df_train['cue_text'])
+        tfidf_test_cue = tfidf.transform(df_test['cue_text'])
+    
+    #final tfidf vectors
+    if ncol == 3:
+        tfidf_train = (tfidf_train_sar + tfidf_train_eli + tfidf_train_obl) / 3
+        tfidf_test = (tfidf_test_sar + tfidf_test_eli + tfidf_test_obl) / 3
+    elif ncol == 4:
+        tfidf_train = (tfidf_train_sar + tfidf_train_eli + tfidf_train_obl + tfidf_train_cue) / 3
+        tfidf_test = (tfidf_test_sar + tfidf_test_eli + tfidf_test_obl + tfidf_test_cue) / 3
+
+    
+    return tfidf_train, tfidf_test
+
     
     
