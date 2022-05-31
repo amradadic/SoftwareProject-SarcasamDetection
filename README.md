@@ -9,3 +9,6 @@ utils/predictions.py - functions for predictions
 /analysis.py - main dataset analysis
 
 /svm.py - SVM classification
+
+
+GLOVE EMBEDDINGS: glove.6B.100d embedding file must be manually added because it exceeds limit size
