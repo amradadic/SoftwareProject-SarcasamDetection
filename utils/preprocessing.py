@@ -12,11 +12,17 @@ import string
 string.punctuation
 from sklearn.feature_extraction.text import TfidfVectorizer
 from utils import glove
+from keras.preprocessing.text import Tokenizer
 
 
 def remove_na_from_column(df, column_name):
     df = df.dropna(subset = [column_name])
     df = df.reset_index(drop = True)
+
+    return df
+
+def fill_na_from_column(df, column_name):
+    df[column_name] = df[column_name].fillna('')
 
     return df
 
@@ -145,20 +151,13 @@ def get_df_context(df, cue = False) :
     
     if cue:
         if 'cue_text' in df.columns:
-            df = df[['sar_id', 'obl_id', 'eli_id', 'cue_id', 'sar_text', 'obl_text', 'eli_text', 'cue_text']]
+            df = df[['sar_id', 'sar_text', 'obl_text', 'eli_text', 'cue_text']]
         else:
-            df = df[['sar_id', 'obl_id', 'eli_id', 'sar_text', 'obl_text', 'eli_text']]
+            df = df[['sar_id', 'sar_text', 'obl_text', 'eli_text']]
             df = df.assign(cue_text='')
         
     else:
-        df = df[['sar_id', 'obl_id', 'eli_id', 'sar_text', 'obl_text', 'eli_text']]
-        
-    # fill na values    
-    df['obl_text'] = df['obl_text'].fillna('')
-    df['eli_text'] = df['eli_text'].fillna('')
-    
-    if cue:
-        df['cue_text'] = df['cue_text'].fillna('')
+        df = df[['sar_id', 'sar_text', 'obl_text', 'eli_text']]
         
     return df
 
@@ -192,25 +191,88 @@ def get_tfidf_context(df_train, df_test) :
         tfidf_train = (tfidf_train_sar + tfidf_train_eli + tfidf_train_obl) / 3
         tfidf_test = (tfidf_test_sar + tfidf_test_eli + tfidf_test_obl) / 3
     elif ncol == 4:
-        tfidf_train = (tfidf_train_sar + tfidf_train_eli + tfidf_train_obl + tfidf_train_cue) / 3
-        tfidf_test = (tfidf_test_sar + tfidf_test_eli + tfidf_test_obl + tfidf_test_cue) / 3
+        tfidf_train = (tfidf_train_sar + tfidf_train_eli + tfidf_train_obl + tfidf_train_cue) / 4
+        tfidf_test = (tfidf_test_sar + tfidf_test_eli + tfidf_test_obl + tfidf_test_cue) / 4
 
     
     return tfidf_train, tfidf_test
 
 
 
-def get_glove_embedding(df_train, df_test):
+def get_glove_embedding_SVM(df_train, df_test):
     model = glove.load_glove()
+    
+    ncol = df_train.shape[1]
     
     # Set a word vectorizer
     vectorizer = glove.GloveVectorizer(model)
+    print('sarcastic')
     # Get the sentence embeddings for the train dataset
-    Xtrain = vectorizer.fit_transform(df_train)
+    Xtrain_sar = vectorizer.fit_transform_sentence(df_train['sar_text'])
     # Get the sentence embeddings for the test dataset
-    Xtest = vectorizer.transform(df_test)
+    Xtest_sar = vectorizer.transform_sentence(df_test['sar_text'])
     
+    
+    if ncol >= 3:
+        print("elicit - 10735 NaN values in train, 2709 NaN values in test")
+        Xtrain_eli = vectorizer.transform_sentence(df_train['eli_text'])
+        Xtest_eli = vectorizer.transform_sentence(df_test['eli_text'])
+        print('oblivious - 8889 NaN values in train, 2252 NaN values in test')
+        Xtrain_obl = vectorizer.transform_sentence(df_train['obl_text'])
+        Xtest_obl = vectorizer.transform_sentence(df_test['obl_text'])
+        
+    if ncol == 4:
+        print('cue')
+        print('oblivious - 9317 NaN values in train, 2335 NaN values in test')
+        Xtrain_cue = vectorizer.transform_sentence(df_train['cue_text'])
+        Xtest_cue= vectorizer.transform_sentence(df_test['cue_text'])
+        
+        
+    #final glove vectors
+    if ncol == 1:
+        Xtrain = Xtrain_sar
+        Xtest = Xtest_sar
+    if ncol == 3:
+        Xtrain = (Xtrain_sar + Xtrain_eli + Xtrain_obl) / 3
+        Xtest = (Xtest_sar + Xtest_eli + Xtest_obl) / 3
+    elif ncol == 4:
+        Xtrain = (Xtrain_sar + Xtrain_eli + Xtrain_obl + Xtrain_cue) / 4
+        Xtest = (Xtest_sar + Xtest_eli + Xtest_obl + Xtest_cue) / 4
+
     return Xtrain, Xtest
+
+def concat_df(df, colname = 'tweets'):
+    ncol = df.shape[1]
+    
+    result = pd.DataFrame()
+    
+    if ncol == 1:
+        result[colname] = df['sar_text']
+    
+    elif ncol == 3:
+        result[colname] = df[['sar_text', 'obl_text', 'eli_text']].apply(lambda row: ' '.join(row.values.astype(str)), axis=1)
+    
+    elif ncol == 4:
+        result[colname] = df[['sar_text', 'obl_text', 'eli_text', 'cue_text']].apply(lambda row: ' '.join(row.values.astype(str)), axis=1)
+    
+    return result
+    
+
+def get_dictionary(df):
+    result = concat_df(df)
+    
+    tokenizer = Tokenizer(num_words=10000)
+    tokenizer.fit_on_texts(result['tweets'])
+    words_to_index = tokenizer.word_index
+    
+    return words_to_index
+
+def get_glove_embedding_BiLSTM(dictionary):
+    model = glove.load_glove()
+    vectorizer = glove.GloveVectorizer(model)
+    embedding = vectorizer.fit_transform_word(dictionary)
+    
+    return embedding
     
         
 
