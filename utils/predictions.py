@@ -24,6 +24,12 @@ def make_dataframe(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic, context = False, 
 
         df_SPIRS = pd.concat([df_SPIRS_sarcastic, df_SPIRS_non_sarcastic], ignore_index=True)
 
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'sar_text', keep_emoji=True)
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'obl_text', keep_emoji=True)
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'eli_text', keep_emoji=True)
+        if cue:
+            df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'cue_text', keep_emoji=True)
+
     else:  #returns dataframe with columns tweet_id, tweet, label
         non_sarcastic_tweets = np.array(df_SPIRS_non_sarcastic['sar_text'])
         non_sarcastic_tweet_id = np.array(df_SPIRS_non_sarcastic['sar_id'])
