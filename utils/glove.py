@@ -45,8 +45,8 @@ class GloveVectorizer:
             vecs = []
             m = 0
             
-            if n < 5:
-                print(sentence)
+        #    if n < 1:
+        #        print(sentence + '\n\n')
             
             for word in tokens:
                 try:
