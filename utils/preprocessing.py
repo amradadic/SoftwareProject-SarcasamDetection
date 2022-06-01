@@ -140,18 +140,18 @@ def remove_nltk_stopwords_from_tweet(s):
     return s
 
 
-#returns dataframe with columns sar_text, 'obl_text', 'elicit text' [and 'cue text']
+#returns dataframe with columns sar_text, 'obl_text', 'elicit text' [and 'cue text'] and corrensponding id
 def get_df_context(df, cue = False) :
     
     if cue:
         if 'cue_text' in df.columns:
-            df = df[['sar_text', 'obl_text', 'eli_text', 'cue_text']]
-        else :
-            df = df[['sar_text', 'obl_text', 'eli_text']]
+            df = df[['sar_id', 'obl_id', 'eli_id', 'cue_id', 'sar_text', 'obl_text', 'eli_text', 'cue_text']]
+        else:
+            df = df[['sar_id', 'obl_id', 'eli_id', 'sar_text', 'obl_text', 'eli_text']]
             df = df.assign(cue_text='')
         
-    else :
-        df = df[['sar_text', 'obl_text', 'eli_text']]
+    else:
+        df = df[['sar_id', 'obl_id', 'eli_id', 'sar_text', 'obl_text', 'eli_text']]
         
     # fill na values    
     df['obl_text'] = df['obl_text'].fillna('')

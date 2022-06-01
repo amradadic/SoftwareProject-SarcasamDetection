@@ -11,47 +11,37 @@ from utils import preprocessing
 
 
 # makes dataframe and does preprocessing
-def preparing_data(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic):
-    non_sarcastic_tweets = np.array(df_SPIRS_non_sarcastic['sar_text'])
-    non_sarcastic_tweet_id = np.array(df_SPIRS_non_sarcastic['sar_id'])
-    label = np.zeros(len(non_sarcastic_tweets), dtype=np.int8)
-    dataset_nonsarcasm = pd.DataFrame(
-        {'tweet_id': list(non_sarcastic_tweet_id), 'label': label, 'tweet': list(non_sarcastic_tweets)},
-        columns=['tweet_id', 'label', 'tweet'])
+def make_dataframe(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic, context = False, cue = False):
+    if context:  #retuns dataframe with columns 'sar_id', 'obl_id', 'eli_id', 'cue_id', 'sar_text', 'obl_text', 'eli_text', 'cue_text'
+        df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'sar_text')
+        df_SPIRS_non_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_non_sarcastic, 'sar_text')
 
-    sarcastic_tweets = np.array(df_SPIRS_sarcastic['sar_text'])
-    sarcastic_tweets_id = np.array(df_SPIRS_sarcastic['sar_id'])
-    label = np.ones(len(sarcastic_tweets), dtype=np.int8)
-    dataset_sarcasm = pd.DataFrame(
-        {'tweet_id': list(sarcastic_tweets_id), 'label': label, 'tweet': list(sarcastic_tweets)},
-        columns=['tweet_id', 'label', 'tweet'])
+        df_SPIRS_sarcastic = preprocessing.get_df_context(df_SPIRS_sarcastic, cue=cue)
+        df_SPIRS_non_sarcastic = preprocessing.get_df_context(df_SPIRS_non_sarcastic, cue=cue)
 
-    df_SPIRS = pd.concat([dataset_nonsarcasm, dataset_sarcasm], ignore_index=True)
+        df_SPIRS_sarcastic = df_SPIRS_sarcastic.assign(label=1)
+        df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic.assign(label=0)
 
-    df_SPIRS = preprocessing.remove_na_from_column(df_SPIRS, 'tweet')
-    df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS)
+        df_SPIRS = pd.concat([df_SPIRS_sarcastic, df_SPIRS_non_sarcastic], ignore_index=True)
+
+    else:  #returns dataframe with columns tweet_id, tweet, label
+        non_sarcastic_tweets = np.array(df_SPIRS_non_sarcastic['sar_text'])
+        non_sarcastic_tweet_id = np.array(df_SPIRS_non_sarcastic['sar_id'])
+        label = np.zeros(len(non_sarcastic_tweets), dtype=np.int8)
+        dataset_nonsarcasm = pd.DataFrame({'tweet_id': list(non_sarcastic_tweet_id), 'label': label, 'tweet': list(non_sarcastic_tweets)},
+                                          columns=['tweet_id', 'label', 'tweet'])
+
+        sarcastic_tweets = np.array(df_SPIRS_sarcastic['sar_text'])
+        sarcastic_tweets_id = np.array(df_SPIRS_sarcastic['sar_id'])
+        label = np.ones(len(sarcastic_tweets), dtype=np.int8)
+        dataset_sarcasm = pd.DataFrame({'tweet_id': list(sarcastic_tweets_id), 'label': label, 'tweet': list(sarcastic_tweets)},
+                                       columns=['tweet_id', 'label', 'tweet'])
+        df_SPIRS = pd.concat([dataset_nonsarcasm, dataset_sarcasm], ignore_index=True)
+
+        df_SPIRS = preprocessing.remove_na_from_column(df_SPIRS, 'tweet')
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS)
 
     return df_SPIRS
-
-
-def train_test_split(df, ratio=0.8):
-    df_SPIRS = df.sample(frac=1)
-
-    y = df_SPIRS['label'].values
-    X = df_SPIRS['tweet'].values
-
-    n_train = math.floor(ratio * X.shape[0])
-    # n_test = math.ceil((1-0.8) * X.shape[0])
-    x_train = X[:n_train]
-    y_train = y[:n_train]
-    x_test = X[n_train:]
-    y_test = y[n_train:]
-
-    tweet_id = df_SPIRS['tweet_id'][n_train:].values
-
-    # (x_train, x_test, y_train, y_test) = train_test_split(x, y, test_size=0.2, random_state=123, shuffle=True)
-
-    return (x_train, x_test, y_train, y_test, tweet_id)
 
 
 def metrics(y_test, y_pred, target_names):

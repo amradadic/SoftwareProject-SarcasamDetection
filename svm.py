@@ -2,32 +2,22 @@ import pandas as pd
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from utils import predictions as pf
+import numpy as np
+from utils import preprocessing
+from sklearn.model_selection import train_test_split
+import math
+
 
 df_SPIRS_sarcastic = pd.read_csv('SPIRS-sarcastic.csv')
 df_SPIRS_non_sarcastic = pd.read_csv('SPIRS-non-sarcastic.csv')
 
-df_SPIRS = pf.preparing_data(df_SPIRS_sarcastic, df_SPIRS_non_sarcastic)
-x_train, x_test, y_train, y_test, tweet_id = pf.train_test_split(df_SPIRS)
+#####SVM only tweets
+df_SPIRS = pf.make_dataframe(df_SPIRS_sarcastic, df_SPIRS_non_sarcastic)
 
-#######CountVectorizer
-cv = CountVectorizer(ngram_range=(1,3))
-cv_x_train = cv.fit_transform(x_train)
-cv_x_test = cv.transform(x_test)
+df_SPIRS = df_SPIRS.sample(frac=1) #shuffle
+x_train, x_test, y_train, y_test = train_test_split(df_SPIRS['tweet'].values, df_SPIRS['label'].values, test_size=0.2, shuffle=False)
 
-svm_classifier = svm.LinearSVC().fit(cv_x_train, y_train)
-y_pred = svm_classifier.predict(cv_x_test)
-
-pf.plot_coefficients(svm_classifier, cv.get_feature_names_out())
-
-metrics_cv = pf.metrics(y_test, y_pred, target_names=['Non-sarcastic', 'Sarcastic'])
-print(metrics_cv)
-
-df_cv = pd.DataFrame({'tweet_id': tweet_id, 'label': y_test, 'prediction': y_pred})
-pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC", "CountVectorizer", metrics_cv, df_cv)
-
-
-#######TFIDF
-tfidf = TfidfVectorizer(ngram_range=(1,3))
+tfidf = TfidfVectorizer()
 tfidf_x_train = tfidf.fit_transform(x_train)
 tfidf_x_test = tfidf.transform(x_test)
 
@@ -39,5 +29,52 @@ pf.plot_coefficients(svm_classifier, tfidf.get_feature_names_out())
 metrics_tfidf = pf.metrics(y_test, tfidf_y_pred, target_names=['Non-sarcastic', 'Sarcastic'])
 print(metrics_tfidf)
 
-df_tfidf = pd.DataFrame({'tweet_id': tweet_id, 'label': y_test, 'prediction': tfidf_y_pred})
-pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC", "TF-IDF", metrics_tfidf, df_tfidf)
+n_train = math.floor(0.8 * df_SPIRS['label'].shape[0])
+df_tfidf = pd.DataFrame({'tweet_id': df_SPIRS['tweet_id'][n_train:].values, 'label': y_test, 'prediction': tfidf_y_pred})
+pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC only sar_text", "TF-IDF", metrics_tfidf, df_tfidf)
+
+'''
+####SVM WITH CONTEXT
+df_SPIRS = pf.make_dataframe(df_SPIRS_sarcastic, df_SPIRS_non_sarcastic, context=True, cue=True)
+
+df_SPIRS = df_SPIRS.sample(frac=1) #shuffle
+x_train, x_test, y_train, y_test = train_test_split(df_SPIRS.loc[:, ['sar_text', 'obl_text', 'eli_text', 'cue_text']], df_SPIRS[['label']], test_size=0.2, shuffle=False)
+
+tf_idf_train, tf_idf_test = preprocessing.get_tfidf_context(x_train, x_test)
+
+svm_classifier = svm.LinearSVC().fit(tf_idf_train, y_train['label'])
+tfidf_pred = svm_classifier.predict(tf_idf_test)
+
+#pf.plot_coefficients(svm_classifier, tfidf.get_feature_names_out())
+
+metrics_context = pf.metrics(y_test, tfidf_pred, target_names=['Non-sarcastic', 'Sarcastic'])
+
+n_train = math.floor(0.8 * df_SPIRS['label'].shape[0])
+print(n_train)
+df = pd.DataFrame({'sar_id': df_SPIRS.loc[n_train:, 'sar_id'], #'obl_id': df_SPIRS.loc[n_train:, 'obl_id'],
+                   #'eli_id': df_SPIRS.loc[n_train:, 'eli_id'], 'cue_id': df_SPIRS.loc[n_train:, 'cue_id'],
+                   'label': y_test, 'predicted_value': tfidf_pred})
+#pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC with context", "TF-IDF", metrics_context, df)
+'''
+
+'''
+#### GLOVE EMBEDDING
+
+df_SPIRS_sarcastic = df_SPIRS_sarcastic[['sar_text']]
+df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic[['sar_text']]
+
+df_SPIRS_sarcastic = df_SPIRS_sarcastic.assign(label=1)
+df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic.assign(label=0)
+
+df_SPIRS = pd.concat([df_SPIRS_sarcastic, df_SPIRS_non_sarcastic], ignore_index=True)
+
+x_train, x_test, y_train, y_test = train_test_split(df_SPIRS.loc[:, df_SPIRS.columns != 'label'], df_SPIRS[['label']], test_size=0.2, random_state=123, shuffle=True)
+
+glove_train, glove_test = preprocessing.get_glove_embedding(x_train['sar_text'], x_test['sar_text'])
+print(glove_train.shape,  glove_test.shape)
+
+svm_classifier = svm.LinearSVC().fit(glove_train, y_train['label'])
+glove_test_pred = svm_classifier.predict(glove_test)
+
+print(pf.metrics(y_test, glove_test_pred, target_names=['Non-sarcastic', 'Sarcastic']))
+'''
