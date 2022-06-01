@@ -203,30 +203,28 @@ def get_glove_embedding_SVM(df_train, df_test):
     
     ncol = df_train.shape[1]
     
-    print('ncol' + str(ncol))
-    
     # Set a word vectorizer
     vectorizer = glove.GloveVectorizer(model)
     print('sarcastic')
     # Get the sentence embeddings for the train dataset
-    Xtrain_sar = vectorizer.fit_transform(df_train['sar_text'])
+    Xtrain_sar = vectorizer.fit_transform_sentence(df_train['sar_text'])
     # Get the sentence embeddings for the test dataset
-    Xtest_sar = vectorizer.transform(df_test['sar_text'])
+    Xtest_sar = vectorizer.transform_sentence(df_test['sar_text'])
     
     
     if ncol >= 3:
         print("elicit - 10735 NaN values in train, 2709 NaN values in test")
-        Xtrain_eli = vectorizer.transform(df_train['eli_text'])
-        Xtest_eli = vectorizer.transform(df_test['eli_text'])
+        Xtrain_eli = vectorizer.transform_sentence(df_train['eli_text'])
+        Xtest_eli = vectorizer.transform_sentence(df_test['eli_text'])
         print('oblivious - 8889 NaN values in train, 2252 NaN values in test')
-        Xtrain_obl = vectorizer.transform(df_train['obl_text'])
-        Xtest_obl = vectorizer.transform(df_test['obl_text'])
+        Xtrain_obl = vectorizer.transform_sentence(df_train['obl_text'])
+        Xtest_obl = vectorizer.transform_sentence(df_test['obl_text'])
         
     if ncol == 4:
         print('cue')
         print('oblivious - 9317 NaN values in train, 2335 NaN values in test')
-        Xtrain_cue = vectorizer.transform(df_train['cue_text'])
-        Xtest_cue= vectorizer.transform(df_test['cue_text'])
+        Xtrain_cue = vectorizer.transform_sentence(df_train['cue_text'])
+        Xtest_cue= vectorizer.transform_sentence(df_test['cue_text'])
         
         
     #final glove vectors

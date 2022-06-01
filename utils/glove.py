@@ -30,7 +30,7 @@ class GloveVectorizer:
     def fit(self, data):
         pass
 
-    def transform(self, data):
+    def transform_sentence(self, data):
         
         # determine the dimensionality of vectors
         self.D = self.word_vectors.get_vector('king').shape[0]
@@ -72,9 +72,9 @@ class GloveVectorizer:
         return X
 
 
-    def fit_transform(self, data):
+    def fit_transform_sentence(self, data):
         self.fit(data)
-        return self.transform(data)
+        return self.transform_sentence(data)
     
 
 # %%
