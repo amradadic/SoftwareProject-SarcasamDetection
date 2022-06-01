@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 from utils import predictions as pf
 from sklearn import svm
 from sklearn import metrics as m
+from utils import glove
+from tensorflow.keras.layers import Embedding
 
 
 ##NAPOMENA - KAD SE KORISTI VISE KOLONA NAD SVAKOM KOLONOM TREBA POZVAR .preprocess_tweets
@@ -85,14 +87,26 @@ x_train, x_test, y_train, y_test = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.co
 
 #%%
 #get glove embedding
-glove_train, glove_test = preprocessing.get_glove_embedding_SVM(x_train, x_test)
-print(glove_train.shape,  glove_test.shape)
+#glove_train, glove_test = preprocessing.get_glove_embedding_SVM(x_train, x_test)
+#print(glove_train.shape,  glove_test.shape)
 
 #%%
 #SVM
-svm_classifier = svm.LinearSVC().fit(glove_train, y_train['label'])
-glove_test_pred = svm_classifier.predict(glove_test)
+#svm_classifier = svm.LinearSVC().fit(glove_train, y_train['label'])
+#glove_test_pred = svm_classifier.predict(glove_test)
 
-print(m.classification_report(y_test, glove_test_pred, target_names=['Non-sarcastic', 'Sarcastic']))
+#print(m.classification_report(y_test, glove_test_pred, target_names=['Non-sarcastic', 'Sarcastic']))
 
+#%%
+#SAMO ZA BiLSTM
+
+
+#%%
+
+dictionary = preprocessing.get_dictionary(x_train)
+embedding = preprocessing.get_glove_embedding_BiLSTM(dictionary)
+    
+
+# %%
+embedding_layer = Embedding(input_dim=len(dictionary), output_dim=100, input_length=150, weights = [embedding], trainable=False)
 # %%

@@ -76,5 +76,41 @@ class GloveVectorizer:
         self.fit(data)
         return self.transform_sentence(data)
     
+    
+    def transform_words(self, data):
+        
+        # determine the dimensionality of vectors
+        self.D = self.word_vectors.get_vector('king').shape[0]
+
+        # the final vector
+        X = np.zeros((len(data), self.D))
+        emptycount = 0
+        
+        i = 0
+        for word in data.items(): 
+            
+            embedding_vector = None
+            
+            try:
+                embedding_vector = self.word_vectors.get_vector(word[0])
+            except KeyError:
+                pass   
+            
+            if embedding_vector is not None:
+                X[i] = embedding_vector
+            else  :
+                emptycount += 1
+                
+            i += 0
+            
+            
+        print("Numer of samples with no words found: %s / %s" % (emptycount, len(data)))
+        
+        return X
+    
+    def fit_transform_word(self, data):
+        self.fit(data)
+        return self.transform_words(data)
+    
 
 # %%

@@ -12,6 +12,7 @@ import string
 string.punctuation
 from sklearn.feature_extraction.text import TfidfVectorizer
 from utils import glove
+from keras.preprocessing.text import Tokenizer
 
 
 def remove_na_from_column(df, column_name):
@@ -239,6 +240,39 @@ def get_glove_embedding_SVM(df_train, df_test):
         Xtest = (Xtest_sar + Xtest_eli + Xtest_obl + Xtest_cue) / 4
 
     return Xtrain, Xtest
+
+def concat_df(df, colname = 'tweets'):
+    ncol = df.shape[1]
+    
+    result = pd.DataFrame()
+    
+    if ncol == 1:
+        result[colname] = df['sar_text']
+    
+    elif ncol == 3:
+        result[colname] = df[['sar_text', 'obl_text', 'eli_text']].apply(lambda row: ' '.join(row.values.astype(str)), axis=1)
+    
+    elif ncol == 4:
+        result[colname] = df[['sar_text', 'obl_text', 'eli_text', 'cue_text']].apply(lambda row: ' '.join(row.values.astype(str)), axis=1)
+    
+    return result
+    
+
+def get_dictionary(df):
+    result = concat_df(df)
+    
+    tokenizer = Tokenizer(num_words=10000)
+    tokenizer.fit_on_texts(result['tweets'])
+    words_to_index = tokenizer.word_index
+    
+    return words_to_index
+
+def get_glove_embedding_BiLSTM(dictionary):
+    model = glove.load_glove()
+    vectorizer = glove.GloveVectorizer(model)
+    embedding = vectorizer.fit_transform_word(dictionary)
+    
+    return embedding
     
         
 
