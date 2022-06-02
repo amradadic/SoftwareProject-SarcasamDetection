@@ -11,10 +11,22 @@ from utils import preprocessing
 
 
 # makes dataframe and does preprocessing
-def make_dataframe(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic, context = False, cue = False):
+def make_dataframe(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic, context = False, cue = False, emoji = True):
     if context:  #retuns dataframe with columns 'sar_id', 'obl_id', 'eli_id', 'cue_id', 'sar_text', 'obl_text', 'eli_text', 'cue_text'
+        #remove NA from sar_text
         df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'sar_text')
         df_SPIRS_non_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_non_sarcastic, 'sar_text')
+
+        # fill NA from other columns
+        df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'eli_text')
+        df_SPIRS_non_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_non_sarcastic, 'eli_text')
+
+        df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'obl_text')
+        df_SPIRS_non_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_non_sarcastic, 'obl_text')
+
+        if cue:
+            df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'cue_text')
+            # non sar has no cue text
 
         df_SPIRS_sarcastic = preprocessing.get_df_context(df_SPIRS_sarcastic, cue=cue)
         df_SPIRS_non_sarcastic = preprocessing.get_df_context(df_SPIRS_non_sarcastic, cue=cue)
@@ -24,11 +36,11 @@ def make_dataframe(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic, context = False, 
 
         df_SPIRS = pd.concat([df_SPIRS_sarcastic, df_SPIRS_non_sarcastic], ignore_index=True)
 
-        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'sar_text', keep_emoji=True)
-        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'obl_text', keep_emoji=True)
-        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'eli_text', keep_emoji=True)
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'sar_text', keep_emoji=emoji)
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'obl_text', keep_emoji=emoji)
+        df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'eli_text', keep_emoji=emoji)
         if cue:
-            df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'cue_text', keep_emoji=True)
+            df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, 'cue_text', keep_emoji=emoji)
 
     else:  #returns dataframe with columns tweet_id, tweet, label
         non_sarcastic_tweets = np.array(df_SPIRS_non_sarcastic['sar_text'])

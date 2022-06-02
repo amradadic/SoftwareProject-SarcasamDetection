@@ -11,6 +11,7 @@ import math
 df_SPIRS_sarcastic = pd.read_csv('SPIRS-sarcastic.csv')
 df_SPIRS_non_sarcastic = pd.read_csv('SPIRS-non-sarcastic.csv')
 
+
 #####SVM ONLY SAR_TEXT
 df_SPIRS = pf.make_dataframe(df_SPIRS_sarcastic, df_SPIRS_non_sarcastic)
 
@@ -55,24 +56,24 @@ n_train = math.floor(0.8 * df_SPIRS['label'].shape[0])
 df = pd.DataFrame({'sar_id': df_SPIRS['sar_id'][n_train:], 'label': y_test, 'predicted_value': tfidf_pred})
 pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC with context", "TF-IDF", metrics_context, df)
 
-'''
-#### GLOVE EMBEDDING WITH CONTEXT
 
-df_SPIRS = pf.make_dataframe(df_SPIRS_sarcastic, df_SPIRS_non_sarcastic, context=True, cue=True)
+
+#### GLOVE EMBEDDING WITH CONTEXT
+df_SPIRS = pf.make_dataframe(df_SPIRS_sarcastic, df_SPIRS_non_sarcastic, context=True)
 
 df_SPIRS = df_SPIRS.sample(frac=1) #shuffle
 x_train, x_test, y_train, y_test = train_test_split(df_SPIRS.loc[:, ['sar_text', 'obl_text', 'eli_text']], df_SPIRS['label'], test_size=0.2, shuffle=False)
 
-glove_train, glove_test = preprocessing.get_glove_embedding(x_train['sar_text'], x_test['sar_text'])
-print(glove_train.shape,  glove_test.shape)
+glove_train, glove_test = preprocessing.get_glove_embedding_SVM(x_train.loc[:, ['sar_text', 'obl_text', 'eli_text']], x_test.loc[:, ['sar_text', 'obl_text', 'eli_text']])
 
-svm_classifier = svm.LinearSVC().fit(glove_train, y_train['label'])
+svm_classifier = svm.LinearSVC().fit(glove_train, y_train)
 glove_test_pred = svm_classifier.predict(glove_test)
+
+#pf.plot_coefficients(svm_classifier, )
 
 metrics_context = pf.metrics(y_test, glove_test_pred, target_names=['Non-sarcastic', 'Sarcastic'])
 print(metrics_context)
 
 n_train = math.floor(0.8 * df_SPIRS['label'].shape[0])
 df = pd.DataFrame({'sar_id': df_SPIRS['sar_id'][n_train:], 'label': y_test, 'predicted_value': glove_test_pred})
-pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC with context", "TF-IDF", metrics_context, df)
-'''
+pf.json_metrics("json\SVMmetrics.json", "SVM - LinearSVC with context", "Glove", metrics_context, df)
