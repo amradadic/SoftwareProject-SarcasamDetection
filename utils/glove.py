@@ -101,7 +101,7 @@ class GloveVectorizer:
             else  :
                 emptycount += 1
                 
-            i += 0
+            i += 1
             
             
         print("Numer of samples with no words found: %s / %s" % (emptycount, len(data)))

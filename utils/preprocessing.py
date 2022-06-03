@@ -258,23 +258,22 @@ def concat_df(df, colname = 'tweets'):
     return result
     
 
-def get_dictionary(df):
+def get_dictionary(df, num_words=10000):
     result = concat_df(df)
     
-    tokenizer = Tokenizer(num_words=10000)
+    tokenizer = Tokenizer(num_words=num_words)
     tokenizer.fit_on_texts(result['tweets'])
     words_to_index = tokenizer.word_index
     
-    return words_to_index
+    return tokenizer, words_to_index
 
 def get_glove_embedding_BiLSTM(dictionary):
+    
     model = glove.load_glove()
     vectorizer = glove.GloveVectorizer(model)
     embedding = vectorizer.fit_transform_word(dictionary)
     
     return embedding
     
-        
-
     
     

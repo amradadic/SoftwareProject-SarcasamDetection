@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 from utils import predictions as pf
 from sklearn import svm
 from sklearn import metrics as m
-from utils import glove
 from tensorflow.keras.layers import Embedding
 
 
@@ -103,7 +102,7 @@ x_train, x_test, y_train, y_test = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.co
 
 #%%
 
-dictionary = preprocessing.get_dictionary(x_train)
+tokenizer, dictionary = preprocessing.get_dictionary(x_train)
 embedding = preprocessing.get_glove_embedding_BiLSTM(dictionary)
     
 
