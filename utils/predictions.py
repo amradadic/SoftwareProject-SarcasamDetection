@@ -5,8 +5,6 @@ import math
 from matplotlib import pyplot as plt
 from sklearn import metrics as m
 import pandas as pd
-import math
-from sklearn.model_selection import train_test_split
 from utils import preprocessing
 
 
@@ -46,17 +44,17 @@ def make_dataframe(df_SPIRS_non_sarcastic, df_SPIRS_sarcastic, context = False, 
         non_sarcastic_tweets = np.array(df_SPIRS_non_sarcastic['sar_text'])
         non_sarcastic_tweet_id = np.array(df_SPIRS_non_sarcastic['sar_id'])
         label = np.zeros(len(non_sarcastic_tweets), dtype=np.int8)
-        dataset_nonsarcasm = pd.DataFrame({'tweet_id': list(non_sarcastic_tweet_id), 'label': label, 'tweet': list(non_sarcastic_tweets)},
-                                          columns=['tweet_id', 'label', 'tweet'])
+        dataset_nonsarcasm = pd.DataFrame({'sar_id': list(non_sarcastic_tweet_id), 'label': label, 'sar_text': list(non_sarcastic_tweets)},
+                                          columns=['sar_id', 'label', 'sar_text'])
 
         sarcastic_tweets = np.array(df_SPIRS_sarcastic['sar_text'])
         sarcastic_tweets_id = np.array(df_SPIRS_sarcastic['sar_id'])
         label = np.ones(len(sarcastic_tweets), dtype=np.int8)
-        dataset_sarcasm = pd.DataFrame({'tweet_id': list(sarcastic_tweets_id), 'label': label, 'tweet': list(sarcastic_tweets)},
-                                       columns=['tweet_id', 'label', 'tweet'])
+        dataset_sarcasm = pd.DataFrame({'sar_id': list(sarcastic_tweets_id), 'label': label, 'sar_text': list(sarcastic_tweets)},
+                                       columns=['sar_id', 'label', 'sar_text'])
         df_SPIRS = pd.concat([dataset_nonsarcasm, dataset_sarcasm], ignore_index=True)
 
-        df_SPIRS = preprocessing.remove_na_from_column(df_SPIRS, 'tweet')
+        df_SPIRS = preprocessing.remove_na_from_column(df_SPIRS, 'sar_text')
         df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS)
 
     return df_SPIRS

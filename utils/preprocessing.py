@@ -32,7 +32,7 @@ FIND_MENTIONS = re.compile(r'@(\S+)')
 LEADING_NAMES = re.compile(r'^\s*((?:@\S+\s*)+)')
 TAIL_NAMES = re.compile(r'\s*((?:@\S+\s*)+)$')
 
-def preprocess_tweets(df, column_name='tweet', keep_emoji = True):
+def preprocess_tweets(df, column_name='sar_text', keep_emoji = True): #column_name=tweet
     df[column_name] = df[column_name].transform(func = process_tweet, keep_emoji=keep_emoji, keep_usernames=False)
 
     return df
@@ -201,8 +201,11 @@ def get_tfidf_context(df_train, df_test) :
 
 def get_glove_embedding_SVM(df_train, df_test):
     model = glove.load_glove()
-    
-    ncol = df_train.shape[1]
+
+    try:
+        ncol = df_train.shape[1]
+    except:
+        ncol = 1
     
     # Set a word vectorizer
     vectorizer = glove.GloveVectorizer(model)
