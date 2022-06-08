@@ -24,49 +24,45 @@ except:
     print('Failed authentication')
 
 querys = 'being sarcastic -filter:retweets AND -filter:links AND -filter:media'
-max_tweets = 3000
+max_tweets = 10000
 
 #tweets = tw.Cursor(api.search,q=search_words,lang="en",since=date_since,until=date_until,result_type="recent").items(2)
 start_date = datetime.datetime(2022, 1, 1, 00, 00, 00)
 end_date = datetime.datetime(2022, 2, 1, 00, 00, 00)
 
-for j in range (1,30):
-    searched_tweets = [status for status in tweepy.Cursor(api.search_tweets,
+
+searched_tweets = [status for status in tweepy.Cursor(api.search_tweets,
                                                       q=querys,
                                                       tweet_mode='extended').items(max_tweets)]
 
 
-    new_rows = []
-    raw = []
-    counter = 0
-    file_counter = 0
-    for i in searched_tweets:
+new_rows = []
+raw = []
+counter = 0
+file_counter = 0
+for i in searched_tweets:
     #print(i.user.id)
     #print("ID: ",  i.id ,   i.text)
-        counter = counter + 1
+    counter = counter + 1
 
-        single_row = []
-        single_row.append(i.id)
+    single_row = []
+    single_row.append(i.id)
     #if hasattr(i, 'retweeted_status'):
         #single_row.append(i.retweeted_status.full_text)
     #else:
-        single_row.append(i.full_text)
+    single_row.append(i.full_text)
 
-        single_row.append(i.user.id)
+    single_row.append(i.user.id)
 
-
-
-
-
-        new_rows.append(single_row)
-        raw.append(i)
+    new_rows.append(single_row)
+    raw.append(i)
 
 
-        arr1 = np.asarray(new_rows)
-        string1 = "newDataset" + str(j) + ".csv"
-        pd.DataFrame(arr1).to_csv(string1)
-        string2 = "raw" + str(j) + ".csv"
-        arr2 = np.asarray(raw)
-        pd.DataFrame(arr2).to_csv(string2)
+arr1 = np.asarray(new_rows)
+string1 = "newDataset9.csv"
+pd.DataFrame(arr1).to_csv(string1)
+string2 = "raw9.csv"
+arr2 = np.asarray(raw)
+pd.DataFrame(arr2).to_csv(string2)
 
 
