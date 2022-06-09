@@ -12,7 +12,7 @@ utils/predictions.py - functions for predictions
 
 
 GLOVE EMBEDDINGS: glove.6B.100d embedding file must be manually added because it exceeds limit size
-link: https://www.kaggle.com/datasets/danielwillgeorge/glove6b100dtxt
+link: https://nlp.stanford.edu/data/glove.twitter.27B.zip
 
 
 Table with results of predictions 
