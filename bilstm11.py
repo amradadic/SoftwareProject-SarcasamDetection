@@ -55,8 +55,8 @@ df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'cue_
 #non sar has no cue text
 
 #get context
-df_SPIRS_sarcastic = preprocessing.get_df_context(df_SPIRS_sarcastic, cue = False)
-df_SPIRS_non_sarcastic = preprocessing.get_df_context(df_SPIRS_non_sarcastic, cue = False)
+#df_SPIRS_sarcastic = preprocessing.get_df_context(df_SPIRS_sarcastic, cue = False)
+#df_SPIRS_non_sarcastic = preprocessing.get_df_context(df_SPIRS_non_sarcastic, cue = False)
 
 
 #df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'eli_text')
@@ -73,18 +73,18 @@ df_SPIRS_non_sarcastic = preprocessing.get_df_context(df_SPIRS_non_sarcastic, cu
 df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'sar_text')
 df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'sar_text')
 
-df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'eli_text')
-df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'eli_text')
+#df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'eli_text')
+#df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'eli_text')
 
-df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'obl_text')
-df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'obl_text')
+#df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'obl_text')
+#df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'obl_text')
 
 #df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'cue_text')
 #non sar has no cue text
 
 #without context
-#df_SPIRS_sarcastic = df_SPIRS_sarcastic[['sar_text']]
-#df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic[['sar_text']]
+df_SPIRS_sarcastic = df_SPIRS_sarcastic[['sar_text']]
+df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic[['sar_text']]
 
 #with context
 
@@ -98,58 +98,19 @@ df_SPIRS = pd.concat([df_SPIRS_sarcastic, df_SPIRS_non_sarcastic], ignore_index=
 #test train split
 
 #for context
-df_SPIRS_X = preprocessing.concat_df(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])], 'sar_text')
-df_SPIRS_Y = df_SPIRS[['label']]
-
-x, x_test2, y, y_test2 = train_test_split(df_SPIRS_X,df_SPIRS_Y,test_size=0.1,train_size=0.9, shuffle=True)
-x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9,shuffle=True)
+#df_SPIRS_X = preprocessing.concat_df(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])], 'sar_text')
+#df_SPIRS_Y = df_SPIRS[['label']]
 #%%
-#x, x_test2, y, y_test2 = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])],df_SPIRS[['label']],test_size=0.1,train_size=0.9)
-#x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9)
+#x, x_test2, y, y_test2 = train_test_split(df_SPIRS_X,df_SPIRS_Y,test_size=0.2,train_size=0.8, shuffle=True)
+#x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9,shuffle=True)
+#%%
+x, x_test2, y, y_test2 = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])],df_SPIRS[['label']],test_size=0.15,train_size=0.85)
+x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9)
 
 #%%
 print(f'shape of train data is {x_train2.shape}')
 print(f'shape of val data is {x_val2.shape}')
 print(f'shape of test data is {x_test2.shape}')
-# %%
-def preprocess_string(s):
-    # Remove all non-word characters (everything except numbers and letters)
-    s = re.sub(r"[^\w\s]", '', s)
-    # Replace all runs of whitespaces with no space
-    s = re.sub(r"\s+", '', s)
-    # replace digits with no space
-    s = re.sub(r"\d", '', s)
-
-    return s
-
-def tockenize(x_train,y_train,x_val,y_val):
-    word_list = []
-
-    stop_words = set(stopwords.words('english')) 
-    for sent in x_train:
-        for word in sent.lower().split():
-            word = preprocess_string(word)
-            if word not in stop_words and word != '':
-                word_list.append(word)
-  
-    corpus = Counter(word_list)
-    # sorting on the basis of most common words
-    corpus_ = sorted(corpus,key=corpus.get,reverse=True)[:1000]
-    # creating a dict
-    onehot_dict = {w:i+1 for i,w in enumerate(corpus_)}
-    
-    # tockenize
-    final_list_train,final_list_test = [],[]
-    for sent in x_train:
-            final_list_train.append([onehot_dict[preprocess_string(word)] for word in sent.lower().split() 
-                                     if preprocess_string(word) in onehot_dict.keys()])
-    for sent in x_val:
-            final_list_test.append([onehot_dict[preprocess_string(word)] for word in sent.lower().split() 
-                                    if preprocess_string(word) in onehot_dict.keys()])
-            
-    encoded_train = [1 if label ==1 else 0 for label in y_train]  
-    encoded_test = [1 if label ==1 else 0 for label in y_val] 
-    return np.array(final_list_train), np.array(encoded_train),np.array(final_list_test), np.array(encoded_test),onehot_dict
 
 #%%
 #x_train,y_train,x_val,y_val,vocab = tockenize(x_train2['sar_text'],y_train2['label'],x_val2['sar_text'],y_val2['label'])
@@ -265,7 +226,7 @@ no_layers = 2
 vocab_size = len(vocab) + 1 #extra 1 for padding
 embedding_dim = 100
 output_dim = 1
-hidden_dim = 128
+hidden_dim = 256
 
 
 model = SentimentRNN(no_layers,vocab_size,hidden_dim,embedding_dim,drop_prob=0.5)
@@ -384,6 +345,10 @@ model.load_state_dict(torch.load('./state_dict.pt'), strict=False)
 test_losses = []
 num_correct = 0
 h = model.init_hidden(batch_size)
+TP = 0
+TN = 0
+FP = 0
+FN = 0
 
 model.eval()
 for inputs, labels in test_loader:
@@ -395,11 +360,36 @@ for inputs, labels in test_loader:
     pred = torch.round(output.squeeze())  # Rounds the output to 0/1
     correct_tensor = pred.eq(labels.float().view_as(pred))
     correct = np.squeeze(correct_tensor.cpu().numpy())
+    
+    
+    for i in range(0, len(pred)):
+        prediction = pred.cpu().detach().numpy()[i]
+        true = labels[i]
+        
+        if prediction == 1 and true == 1 :
+            TP += 1
+        elif prediction == 0 and true == 0 :
+            TN += 1
+        elif prediction == 1 and true == 0 :
+            FP += 1
+        elif prediction == 0 and true == 1:
+            FN += 1
+            
     num_correct += np.sum(correct)
 
 print("Test loss: {:.3f}".format(np.mean(test_losses)))
 test_acc = num_correct/len(test_loader.dataset)
 print("Test accuracy: {:.3f}%".format(test_acc*100))
+print("TP: ", TP)
+print("TN: ", TN)
+print("FP: ", FP)
+print("FN: ", FN)
+precision = TP / (TP + FP)
+print("Precision: ", precision)
+recall = TP / (TP + FN)
+print("Recal:", recall)
+print("F1", 2 * (precision * recall) / (precision + recall))
+
 # %%
 
 #%%
