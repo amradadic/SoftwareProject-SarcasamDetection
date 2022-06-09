@@ -4,10 +4,6 @@ import numpy as np
 import pandas as pd
 from utils import preprocessing
 from sklearn.model_selection import train_test_split
-from keras.preprocessing import sequence
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, BatchNormalization
-from keras.models import Model
 from keras.preprocessing.text import Tokenizer
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.metrics import classification_report
@@ -22,9 +18,6 @@ from torch.utils.data import (
 import torch.nn.functional as F
 import torch.optim as optim
 
-input_dim = 5
-hidden_dim = 10
-n_layers = 1
 maxlen = 50
 
 #%%
@@ -80,34 +73,36 @@ x_train, x_test, y_train, y_test = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.co
 #%%
 
 #%%
-x, x_test2, y, y_test2 = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])],df_SPIRS[['label']],test_size=0.2,train_size=0.8)
-x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.25,train_size =0.75)
+x, x_test2, y, y_test2 = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])],df_SPIRS[['label']],test_size=0.1,train_size=0.9)
+x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9)
 
 #%%
-tokenizer, dictionary = preprocessing.get_dictionary(x_train2, 10000)
+tokenizer, dictionary = preprocessing.get_dictionary(x_train2, 25000)
 embedding = preprocessing.get_glove_embedding_BiLSTM(dictionary)
   
 #%%
-X_train_indices = tokenizer.texts_to_sequences(x_train2['sar_text'][0:4000])
-X_train_indices = pad_sequences(X_train_indices, maxlen=200, padding='post')
+X_train_indices = tokenizer.texts_to_sequences(x_train2['sar_text'][0:12000])
+X_train_indices = pad_sequences(X_train_indices, maxlen=maxlen, padding='post')
 
 X_val_indices = tokenizer.texts_to_sequences(x_val2['sar_text'][0:4000])
-X_val_indices = pad_sequences(X_val_indices, maxlen=200, padding='post')
+X_val_indices = pad_sequences(X_val_indices, maxlen=maxlen, padding='post')
 
 X_test_indices = tokenizer.texts_to_sequences(x_test2['sar_text'][0:4000])
-X_test_indices = pad_sequences(X_test_indices, maxlen=200, padding='post')
+X_test_indices = pad_sequences(X_test_indices, maxlen=maxlen, padding='post')
 
 #%%
 
-train_data = TensorDataset(torch.from_numpy(X_train_indices), torch.from_numpy(y_train2['label'].to_numpy()[0:4000]))
-val_data = TensorDataset(torch.from_numpy(X_val_indices), torch.from_numpy(y_val2['label'].to_numpy()[0:4000]))
-test_data = TensorDataset(torch.from_numpy(X_test_indices), torch.from_numpy(y_test2['label'].to_numpy()[0:4000]))
+train_data = TensorDataset(torch.from_numpy(X_train_indices), torch.from_numpy(y_train2['label'][0:12000].to_numpy()))
+val_data = TensorDataset(torch.from_numpy(X_val_indices), torch.from_numpy(y_val2['label'][0:4000].to_numpy()))
+test_data = TensorDataset(torch.from_numpy(X_test_indices), torch.from_numpy(y_test2['label'][0:4000].to_numpy()))
 
-batch_size = 400
 
-train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
-val_loader = DataLoader(val_data, shuffle=True, batch_size=batch_size)
-test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size)
+#128, 64
+batch_size = 64
+
+train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size,  drop_last=True)
+val_loader = DataLoader(val_data, shuffle=True, batch_size=batch_size,  drop_last=True)
+test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size,  drop_last=True)
 # %%
 # torch.cuda.is_available() checks and returns a Boolean True if a GPU is available, else it'll return False
 is_cuda = torch.cuda.is_available()
@@ -121,13 +116,19 @@ else:
     
 #%%
 class SentimentNet(nn.Module):
-    def __init__(self, vocab_size, output_size, embedding_dim, hidden_dim, n_layers, drop_prob=0.5):
+    def __init__(self, vocab_size, output_size, embedding_dim, embedding, hidden_dim, n_layers, drop_prob=0.5):
         super(SentimentNet, self).__init__()
         self.output_size = output_size
         self.n_layers = n_layers
         self.hidden_dim = hidden_dim
         
+      #  self.embedding = nn.Embedding.from_pretrained(torch.from_numpy(embedding).float())
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
+   #     self.embedding.weight = nn.Parameter(torch.from_numpy(embedding).float(),requires_grad=False)
+   #     model.embedding.weight.data.copy_(torch.from_numpy(embedding))
+       
+  #      self.embedding.load_state_dict({'weight': torch.from_numpy(embedding).float()})
+       
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, n_layers, dropout=drop_prob, batch_first=True)
         self.dropout = nn.Dropout(drop_prob)
         self.fc = nn.Linear(hidden_dim, output_size)
@@ -154,22 +155,22 @@ class SentimentNet(nn.Module):
                       weight.new(self.n_layers, batch_size, self.hidden_dim).zero_().to(device))
         return hidden
 # %%
-vocab_size = len(dictionary) + 1
+vocab_size = len(dictionary)
 output_size = 1
-embedding_dim = 400
+embedding_dim = 100
 hidden_dim = 512
 n_layers = 2
 
-model = SentimentNet(vocab_size, output_size, embedding_dim, hidden_dim, n_layers)
+model = SentimentNet(vocab_size, output_size, embedding_dim, embedding, hidden_dim, n_layers)
 model.to(device)
 #%%
-lr=0.005
+lr=0.0005
 criterion = nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 # %%
-epochs = 2
+epochs = 10
 counter = 0
-print_every = 1
+print_every = 15
 clip = 5
 valid_loss_min = np.Inf
 
@@ -182,7 +183,7 @@ for i in range(epochs):
     
     for inputs, labels in train_loader:
         counter += 1
-        print(counter)
+     #   print(counter)
         h = tuple([e.data for e in h])
         inputs, labels = inputs.to(device), labels.to(device)
         model.zero_grad()
@@ -214,7 +215,7 @@ for i in range(epochs):
                 valid_loss_min = np.mean(val_losses)
 # %%
 # Loading the best model
-model.load_state_dict(torch.load('./state_dict.pt'))
+model.load_state_dict(torch.load('./state_dict.pt'), strict=False)
 
 test_losses = []
 num_correct = 0

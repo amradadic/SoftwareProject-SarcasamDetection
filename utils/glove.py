@@ -10,9 +10,9 @@ import os
 def load_glove() :
     
     dirname = os.path.dirname(__file__)
-    filepath = os.path.join(dirname, '..\\glove.6B.100d.txt')
+    filepath = os.path.join(dirname, '..\\glove.twitter.27B.100d.txt')
     
-    word2vec_output_file = 'glove.6B.100d' +'.word2vec'
+    word2vec_output_file = 'glove.twitter.27B.100d' +'.word2vec'
     glove2word2vec(filepath, word2vec_output_file)
     
     model = KeyedVectors.load_word2vec_format(word2vec_output_file, binary=False)
