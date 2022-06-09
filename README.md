@@ -11,7 +11,7 @@ utils/predictions.py - functions for predictions
 /svm.py - SVM classification
 
 
-GLOVE EMBEDDINGS: glove.6B.100d embedding file must be manually added because it exceeds limit size
+GLOVE EMBEDDINGS: glove.twitter.27B.100d embedding file must be manually added because it exceeds limit size
 link: https://nlp.stanford.edu/data/glove.twitter.27B.zip
 
 
