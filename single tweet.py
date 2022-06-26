@@ -20,14 +20,16 @@ except:
     print('Failed authentication')
 
 
-id =1532126427105091584
+id =1532485859496415240
+
+
 
 status = api.get_status(id, tweet_mode="extended")
     # fetching the text attribute
 text = status.full_text
 
-print("The text of the status is : \n\n" + text)
-
+with open('readme.txt', 'w') as f:
+    f.write(str(status))
 
 
 
