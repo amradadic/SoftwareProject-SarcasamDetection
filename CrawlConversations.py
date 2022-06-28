@@ -27,10 +27,11 @@ def getConversationId(tweet_id):
     json_response = connect_to_endpoint(search_url, query_params)
     print(json.dumps(json_response, indent=4, sort_keys=True))
 
-    #this should return conversation_id
+    return json_response['data'][0]['conversation_id']
 
-def getConversationTweets(conversation_id):
-    search_url = "https://api.twitter.com/2/tweets/search/recent"
+
+def getConversationTweets(conversation_id):    #ove stvari rade u fajlu twitter API vjerovatno je neka glupost pvdje zaboravljena pa nece
+    search_url = "https://api.twitter.com/2/tweets"   #earch/recent"
     expansions = 'referenced_tweets.id,in_reply_to_user_id'
     fields = 'in_reply_to_user_id,author_id,created_at,conversation_id'
 
@@ -38,7 +39,9 @@ def getConversationTweets(conversation_id):
     json_response = connect_to_endpoint(search_url, query_params)
     print(json.dumps(json_response, indent=4, sort_keys=True))
     #this should filter the json, remove the rt and other extras and return the conversation as a list
+    #print(json_response['data'][0]['text'])
+    #print(json_response['data'][0]['referenced_tweets'][0]['type']) #this needs to be replied_to
+    #   -is:quote-is:retweet -is:quote
 
-
-getConversationId(1540746631515103232)
-getConversationTweets(1540746631515103232)
+print(getConversationId(1532408427711979522))
+#getConversationTweets('1532407201767227393 -is:retweet -is:quote')

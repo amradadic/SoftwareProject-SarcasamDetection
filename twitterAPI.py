@@ -19,7 +19,7 @@ search_url = "https://api.twitter.com/2/tweets/search/recent"
 
 
 #pokusaj amra
-ids = '1540746631515103232'
+ids = '1540746631515103232 -is:retweet -is:quote'
 expansions = 'author_id,in_reply_to_user_id,referenced_tweets.id'
 #fields = 'author_id,conversation_id,created_at,in_reply_to_user_id,referenced_tweets'
 
@@ -30,7 +30,7 @@ userfields = 'name,username'
 expansions = 'referenced_tweets.id,in_reply_to_user_id'
 fields = 'in_reply_to_user_id,author_id,created_at,conversation_id'
 
-query_params = {'query': ids, 'tweet.fields' :fields, 'expansions' : expansions, 'max_results': 100}
+query_params = {'query': ids, 'tweet.fields' :fields, 'expansions' : expansions}
 
 #
 #userfields = 'name,username'
