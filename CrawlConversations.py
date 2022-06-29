@@ -30,8 +30,35 @@ def getConversationId(tweet_id):
     return json_response['data'][0]['conversation_id']
 
 
+def getSingleRecursively(tweet_id):
+    search_url = "https://api.twitter.com/2/tweets"
+
+    expansions = 'author_id,in_reply_to_user_id,referenced_tweets.id'
+    fields = 'author_id,conversation_id,created_at,in_reply_to_user_id,referenced_tweets'
+    userfields = 'name,username'
+    query_params = {'ids': tweet_id, 'tweet.fields': fields, 'expansions': expansions, 'user.fields': userfields}
+    json_response = connect_to_endpoint(search_url, query_params)
+
+    list = []
+    list.append(tweet_id)
+    return json_response  #(json_response['data'][0]['referenced_tweets'][0]['id'])
+
+
+def getThreadRecursively(tweet_id):
+    list = []
+    json = getSingleRecursively(tweet_id)
+    while True:
+
+        if json['data'][0]['conversation_id'] == json['data'][0]['id']:
+            list.append((json['data'][0]['id'], json['data'][0]['text']))
+            return list
+        else:
+            list.append((json['data'][0]['id'], json['data'][0]['text']))
+            json = getSingleRecursively(json['data'][0]['referenced_tweets'][0]['id'])
+
+
 def getConversationTweets(conversation_id):    #ove stvari rade u fajlu twitter API vjerovatno je neka glupost pvdje zaboravljena pa nece
-    search_url = "https://api.twitter.com/2/tweets"   #earch/recent"
+    search_url = "https://api.twitter.com/2/tweets/search/recent"
     expansions = 'referenced_tweets.id,in_reply_to_user_id'
     fields = 'in_reply_to_user_id,author_id,created_at,conversation_id'
 
@@ -43,5 +70,10 @@ def getConversationTweets(conversation_id):    #ove stvari rade u fajlu twitter 
     #print(json_response['data'][0]['referenced_tweets'][0]['type']) #this needs to be replied_to
     #   -is:quote-is:retweet -is:quote
 
-print(getConversationId(1532408427711979522))
+#print(getConversationId(1532573107688509446))
 #getConversationTweets('1532407201767227393 -is:retweet -is:quote')
+
+list = getThreadRecursively(1532479519986180111)
+
+for x in list:
+    print(x , "\n")
