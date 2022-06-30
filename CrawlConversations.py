@@ -1,4 +1,6 @@
 import requests
+import pandas as pd
+import time
 import os
 import json
 
@@ -9,26 +11,17 @@ def bearer_oauth(r):
     r.headers["User-Agent"] = "v2RecentSearchPython"
     return r
 
-
 def connect_to_endpoint(url, params):
     response = requests.get(url, auth=bearer_oauth, params =params)
-    print(response.status_code)
+    #print(response.status_code)
+    if response.status_code == 429:
+        timeout = 900 #15min
+        print(f'Sleeping for {timeout} seconds')
+        time.sleep(timeout)
+        connect_to_endpoint(url, params)
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
     return response.json()
-
-def getConversationId(tweet_id):
-    search_url = "https://api.twitter.com/2/tweets"
-
-    expansions = 'author_id,in_reply_to_user_id,referenced_tweets.id'
-    fields = 'author_id,conversation_id,created_at,in_reply_to_user_id,referenced_tweets'
-    userfields = 'name,username'
-    query_params = {'ids' : tweet_id, 'tweet.fields' :fields, 'expansions' : expansions, 'user.fields': userfields}
-    json_response = connect_to_endpoint(search_url, query_params)
-    print(json.dumps(json_response, indent=4, sort_keys=True))
-
-    return json_response['data'][0]['conversation_id']
-
 
 def getSingleRecursively(tweet_id):
     search_url = "https://api.twitter.com/2/tweets"
@@ -48,32 +41,57 @@ def getThreadRecursively(tweet_id):
     list = []
     json = getSingleRecursively(tweet_id)
     while True:
+        if not 'data' in json:
+            return []
 
-        if json['data'][0]['conversation_id'] == json['data'][0]['id']:
-            list.append((json['data'][0]['id'], json['data'][0]['text']))
+        elif json['data'][0]['conversation_id'] == json['data'][0]['id']:
+            list.append((json['data'][0]['id'],
+                         json['data'][0]['text'],
+                         json['data'][0]['author_id'],
+                         json['data'][0]['created_at']))
             return list
         else:
-            list.append((json['data'][0]['id'], json['data'][0]['text']))
+            list.append((json['data'][0]['id'],
+                         json['data'][0]['text'],
+                         json['data'][0]['author_id'],
+                         json['data'][0]['created_at']))
             json = getSingleRecursively(json['data'][0]['referenced_tweets'][0]['id'])
 
+def next_alpha(s):
+    return chr((ord(s.upper())+1 - 65) % 26 + 65)
 
-def getConversationTweets(conversation_id):    #ove stvari rade u fajlu twitter API vjerovatno je neka glupost pvdje zaboravljena pa nece
-    search_url = "https://api.twitter.com/2/tweets/search/recent"
-    expansions = 'referenced_tweets.id,in_reply_to_user_id'
-    fields = 'in_reply_to_user_id,author_id,created_at,conversation_id'
+def defineExpressionsForTweet():
+    df = pd.read_csv('filtered.csv')
+    for i in range(110, df.shape[0]):
+        replies_list = getThreadRecursively(df.at[i,'tweet_id'])
+        s = ''
+        replies_list.reverse()
+        author_id_list = {}
+        letter = 'A'
+        for x in replies_list:
+            current_id = x[2]
+            if current_id not in author_id_list:
+                author_id_list[current_id] = letter
+                s += letter
+                letter = next_alpha(letter)
+            else:
+                s += author_id_list[current_id]
 
-    query_params = {'query': conversation_id, 'tweet.fields': fields, 'expansions': expansions, 'max_results': 100}
-    json_response = connect_to_endpoint(search_url, query_params)
-    print(json.dumps(json_response, indent=4, sort_keys=True))
-    #this should filter the json, remove the rt and other extras and return the conversation as a list
-    #print(json_response['data'][0]['text'])
-    #print(json_response['data'][0]['referenced_tweets'][0]['type']) #this needs to be replied_to
-    #   -is:quote-is:retweet -is:quote
+        #print(s, " ", df.at[i,'tweet_id'])
+        df.loc[i, 'pattern'] = s
 
-#print(getConversationId(1532573107688509446))
-#getConversationTweets('1532407201767227393 -is:retweet -is:quote')
+        if i % 10 == 0:
+            df.to_csv("filtered.csv", index=False)
+            print("Wrote to csv ", i)
 
-list = getThreadRecursively(1532479519986180111)
+    return
 
-for x in list:
-    print(x , "\n")
+defineExpressionsForTweet()
+
+
+
+
+
+
+
+
