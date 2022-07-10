@@ -37,7 +37,6 @@ def getSingleRecursively(tweet_id):
     list.append(tweet_id)
     return json_response  #(json_response['data'][0]['referenced_tweets'][0]['id'])
 
-
 def getThreadRecursively(tweet_id):
     list = []
     json = getSingleRecursively(tweet_id)
@@ -70,48 +69,55 @@ def recognizeTypeOfTweet(thread_pattern, list):
 
     tweet_text =  list[0][1]
     lice = 0
-    if re.match("(A)([^A]*)(A)([^A]*)$", thread_pattern) and (('I was' in tweet_text) or ('I am' in tweet_text) or ('I\'m' in tweet_text)):
+    if re.match("(A)([^A]*)(A)([^A]*)$", thread_pattern) and (('I was' in tweet_text.lower())
+                                                              or ('I am' in tweet_text.lower())
+                                                              or ('I\'m' in tweet_text.lower())):
 
         index_of_A = ([pos for pos, char in enumerate(thread_pattern) if char == 'A'])
 
-        #cue, oblivious, sarcastic, elicit
-        index_list = [0, 1, index_of_A[1], index_of_A[1] + 1]
+        #cue, oblivious, sarcastic, elicit, person
+        index_list = [0, 1, index_of_A[1], index_of_A[1] + 1, 1]
 
-    elif re.match("(A)A*(B)(A*)$", thread_pattern) and  (('you\'re') in tweet_text
-                                                         or ('you are') in tweet_text
-                                                         or ('are you') in tweet_text
-                                                         or ('you were') in tweet_text
-                                                         or ('were you') in tweet_text):
+    elif re.match("(A)A*(B)(A*)$", thread_pattern) and  (('you\'re') in tweet_text.lower()
+                                                         or ('you are') in tweet_text.lower()
+                                                         or ('are you') in tweet_text.lower()
+                                                         or ('you were') in tweet_text.lower()
+                                                         or ('were you') in tweet_text.lower()):
 
         index_of_B = ([pos for pos, char in enumerate(thread_pattern) if char == 'B'])
 
-        # cue, oblivious, sarcastic, elicit
-        index_list = [0, -1, index_of_B[0], index_of_B[0] + 1]
+        # cue, oblivious, sarcastic, elicit, person
+        index_list = [0, -1, index_of_B[0], index_of_B[0] + 1, 2]
 
-    elif re.match("(A)(A*B[AB]*)(C)([AB]*)$", thread_pattern) and (('she is') in tweet_text
-                                                                   or ('she was') in tweet_text
-                                                                   or ('was she') in tweet_text
-                                                                   or ('she\'s') in tweet_text
-                                                                   or ('he is') in tweet_text
-                                                                   or ('he was') in tweet_text
-                                                                   or ('was he') in tweet_text
-                                                                   or ('he\'s') in tweet_text
-                                                                   or ('they were') in tweet_text
-                                                                   or ('they\'re') in tweet_text
-                                                                   or ('were they') in tweet_text
-                                                                   or ('they are') in tweet_text):
+    elif re.match("(A)(A*B[AB]*)(C)([AB]*)$", thread_pattern) and (('she is') in tweet_text.lower()
+                                                                   or ('she was') in tweet_text.lower()
+                                                                   or ('was she') in tweet_text.lower()
+                                                                   or ('she\'s') in tweet_text.lower()
+                                                                   or ('he is') in tweet_text.lower()
+                                                                   or ('he was') in tweet_text.lower()
+                                                                   or ('was he') in tweet_text.lower()
+                                                                   or ('he\'s') in tweet_text.lower()
+                                                                   or ('they were') in tweet_text.lower()
+                                                                   or ('they\'re') in tweet_text.lower()
+                                                                   or ('were they') in tweet_text.lower()
+                                                                   or ('they are') in tweet_text.lower()):
 
         index_of_C = ([pos for pos, char in enumerate(thread_pattern) if char == 'C'])
-        # cue, oblivious, sarcastic, elicit
-        index_list = [0, 1, index_of_C[0], index_of_C[0] + 1]
+        # cue, oblivious, sarcastic, elicit, person
+        index_list = [0, 1, index_of_C[0], index_of_C[0] + 1, 3]
 
     return index_list
 
 def defineExpressionsForTweet():
     df = pd.read_csv('filtered.csv')
-    for i in range(204, 210):  #df.shape[0]
+
+    new_dataset = pd.DataFrame([], columns=["pattern", "person", "cue_id", "sar_id", "obl_id", "eli_id",
+                                            "perspective", "cue_text", "sar_text", "obl_text", "eli_text",
+                                            "cue_user", "sar_user", "obl_user", "eli_user"])
+    index = 0
+    for i in range(0, 250):  #df.shape[0]
         replies_list = getThreadRecursively(df.at[i,'tweet_id'])
-        s = ''
+        pattern = ''
         #replies_list.reverse()
         author_id_list = {}
         letter = 'A'
@@ -119,22 +125,65 @@ def defineExpressionsForTweet():
             current_id = x[2]
             if current_id not in author_id_list:
                 author_id_list[current_id] = letter
-                s += letter
+                pattern += letter
                 letter = next_alpha(letter)
             else:
-                s += author_id_list[current_id]
+                pattern += author_id_list[current_id]
 
-        index_list_types = recognizeTypeOfTweet(s, replies_list)
+        index_list_types = recognizeTypeOfTweet(pattern, replies_list)
 
-        print(index_list_types, s)
+        print(index_list_types, pattern)
+
+        if len(index_list_types) < 4 or len(pattern) < 2:
+            continue
+
+        try:
+            new_dataset.loc[index, "pattern"] = pattern
+
+            if index_list_types[4] == 1:
+                new_dataset.loc[index, "person"] = '1ST'
+                new_dataset.loc[index, "perspective"] = "INTENDED"
+            elif index_list_types[4] == 2:
+                new_dataset.loc[index, "person"] = '2ND'
+                new_dataset.loc[index, "perspective"] = "PERCEIVED"
+            elif index_list_types[4] == 3:
+                new_dataset.loc[index, "person"] = '3RD'
+                new_dataset.loc[index, "perspective"] = "PERCEIVED"
+
+            # cue, oblivious, sarcastic, elicit
+            cue = replies_list[index_list_types[0]]
+            obl = replies_list[index_list_types[1]]
+            sar = replies_list[index_list_types[2]]
+            eli = replies_list[index_list_types[3]]
+
+            new_dataset.loc[index, "cue_id"] = cue[0]
+            new_dataset.loc[index, "cue_text"] = cue[1]
+            new_dataset.loc[index, "cue_user"] = cue[2]
+
+            new_dataset.loc[index, "obl_id"] = obl[0]
+            new_dataset.loc[index, "obl_text"] = obl[1]
+            new_dataset.loc[index, "obl_user"] = obl[2]
+
+            new_dataset.loc[index, "sar_id"] = sar[0]
+            new_dataset.loc[index, "sar_text"] = sar[1]
+            new_dataset.loc[index, "sar_user"] = sar[2]
+
+            new_dataset.loc[index, "eli_id"] = eli[0]
+            new_dataset.loc[index, "eli_text"] = eli[1]
+            new_dataset.loc[index, "eli_user"] = eli[2]
+
+            index = index + 1
+        except IndexError:
+            _ = 0
 
 
 
-        #print(s, " ", df.at[i,'tweet_id'])
-        df.loc[i, 'pattern'] = s
+        print(pattern, " ", df.at[i,'tweet_id'])
+        df.loc[i, 'pattern'] = pattern
 
         if i % 10 == 0:
             df.to_csv("filtered.csv", index=False)
+            new_dataset.to_csv("newDataset.csv")
             print("Wrote to csv ", i)
 
     return
