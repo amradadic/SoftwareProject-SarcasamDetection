@@ -5,12 +5,18 @@ import time
 import os
 import json
 
-bearer_token = 'AAAAAAAAAAAAAAAAAAAAAI3qcQEAAAAA4PAEfL%2ByQCQVQJpHQdNdCoBtlS0%3DvNGdgosAW0lrgv5t8alZ2buQSRfdIYVNT4KCw1Xyvql09qulAS'
+bearer_token1 = 'AAAAAAAAAAAAAAAAAAAAAI3qcQEAAAAA4PAEfL%2ByQCQVQJpHQdNdCoBtlS0%3DvNGdgosAW0lrgv5t8alZ2buQSRfdIYVNT4KCw1Xyvql09qulAS'
+bearer_token2 = 'AAAAAAAAAAAAAAAAAAAAADHdeQEAAAAA1fULSAYvk4vB8hY%2BIRJ3EUS8Fmw%3DYr812SYAW6b5iSR6RGG2b0CiFn3Jmsiq4tNVxSuBoy8FH49L9N'
+bearer_token = 'AAAAAAAAAAAAAAAAAAAAAGbdeQEAAAAAqq53KCc07nzEaXdx5klEfDz5kSg%3DMLSwjOmHtNDyaUJyFsOYSHZWX8nquFevVBN38xH2ORV8ML6Q64'
+bearer_token4 = 'AAAAAAAAAAAAAAAAAAAAAO7ceQEAAAAAugIqXpl9NBP3jAIRYoAc1o7UemY%3DnUka08SDZm7Dvnm3O23KgTioQjhj99YI0PMptrFr9WowqGaaab'
+BEGIN = 1414
 
 def bearer_oauth(r):
     r.headers["Authorization"] = f"Bearer {bearer_token}"
     r.headers["User-Agent"] = "v2RecentSearchPython"
     return r
+
+
 
 def connect_to_endpoint(url, params):
     response = requests.get(url, auth=bearer_oauth, params=params)
@@ -33,8 +39,6 @@ def getSingleRecursively(tweet_id):
     query_params = {'ids': tweet_id, 'tweet.fields': fields, 'expansions': expansions, 'user.fields': userfields}
     json_response = connect_to_endpoint(search_url, query_params)
 
-    list = []
-    list.append(tweet_id)
     return json_response  #(json_response['data'][0]['referenced_tweets'][0]['id'])
 
 def getThreadRecursively(tweet_id):
@@ -42,18 +46,20 @@ def getThreadRecursively(tweet_id):
     json = getSingleRecursively(tweet_id)
     while True:
         if not 'data' in json:
+            print("thread terminated - deleted tweet")
             return []
 
         elif json['data'][0]['conversation_id'] == json['data'][0]['id']:
             list.append((json['data'][0]['id'],
                          json['data'][0]['text'],
-                         json['data'][0]['author_id'],
+                         json['includes']['users'][0]['username'] + '|' + json['data'][0]['author_id'],
                          json['data'][0]['created_at']))
+
             return list
         else:
             list.append((json['data'][0]['id'],
                          json['data'][0]['text'],
-                         json['data'][0]['author_id'],
+                         json['includes']['users'][0]['username'] + '|' + json['data'][0]['author_id'],
                          json['data'][0]['created_at']))
             json = getSingleRecursively(json['data'][0]['referenced_tweets'][0]['id'])
 
@@ -111,11 +117,14 @@ def recognizeTypeOfTweet(thread_pattern, list):
 def defineExpressionsForTweet():
     df = pd.read_csv('filtered.csv')
 
-    new_dataset = pd.DataFrame([], columns=["pattern", "person", "cue_id", "sar_id", "obl_id", "eli_id",
-                                            "perspective", "cue_text", "sar_text", "obl_text", "eli_text",
-                                            "cue_user", "sar_user", "obl_user", "eli_user"])
-    index = 0
-    for i in range(0, 250):  #df.shape[0]
+    new_dataset = pd.read_csv('newDataset3.csv')
+    raw_dataset = pd.read_csv('raw_df.csv')
+    #new_dataset = pd.DataFrame([], columns=["pattern", "person", "cue_id", "sar_id", "obl_id", "eli_id",
+     #                                       "perspective", "cue_text", "sar_text", "obl_text", "eli_text",
+      #                                      "cue_user", "sar_user", "obl_user", "eli_user"])
+    index = new_dataset.shape[0]
+    raw_index = raw_dataset.shape[0]
+    for i in range(BEGIN, df.shape[0]):  #df.shape[0]
         replies_list = getThreadRecursively(df.at[i,'tweet_id'])
         pattern = ''
         #replies_list.reverse()
@@ -130,11 +139,19 @@ def defineExpressionsForTweet():
             else:
                 pattern += author_id_list[current_id]
 
+
+
+
+        raw_dataset.loc[raw_index, 'pattern'] = pattern
+        raw_dataset.loc[raw_index, 'raw_json_replies'] = replies_list
+        raw_index = raw_index + 1
+        raw_dataset.to_csv('raw_df.csv', index=False)
+
         index_list_types = recognizeTypeOfTweet(pattern, replies_list)
 
-        print(index_list_types, pattern)
+        print(index_list_types, pattern, replies_list)
 
-        if len(index_list_types) < 4 or len(pattern) < 2:
+        if len(index_list_types) < 4 or len(pattern) < 1:
             continue
 
         try:
@@ -151,40 +168,46 @@ def defineExpressionsForTweet():
                 new_dataset.loc[index, "perspective"] = "PERCEIVED"
 
             # cue, oblivious, sarcastic, elicit
-            cue = replies_list[index_list_types[0]]
-            obl = replies_list[index_list_types[1]]
-            sar = replies_list[index_list_types[2]]
-            eli = replies_list[index_list_types[3]]
 
+            cue = replies_list[index_list_types[0]]
             new_dataset.loc[index, "cue_id"] = cue[0]
             new_dataset.loc[index, "cue_text"] = cue[1]
             new_dataset.loc[index, "cue_user"] = cue[2]
 
-            new_dataset.loc[index, "obl_id"] = obl[0]
-            new_dataset.loc[index, "obl_text"] = obl[1]
-            new_dataset.loc[index, "obl_user"] = obl[2]
+            if index_list_types[1] != -1:
+                obl = replies_list[index_list_types[1]]
+                new_dataset.loc[index, "obl_id"] = obl[0]
+                new_dataset.loc[index, "obl_text"] = obl[1]
+                new_dataset.loc[index, "obl_user"] = obl[2]
 
+            sar = replies_list[index_list_types[2]]
             new_dataset.loc[index, "sar_id"] = sar[0]
             new_dataset.loc[index, "sar_text"] = sar[1]
             new_dataset.loc[index, "sar_user"] = sar[2]
 
-            new_dataset.loc[index, "eli_id"] = eli[0]
-            new_dataset.loc[index, "eli_text"] = eli[1]
-            new_dataset.loc[index, "eli_user"] = eli[2]
+            if index_list_types[3] < len(replies_list):
+                eli = replies_list[index_list_types[3]]
+                new_dataset.loc[index, "eli_id"] = eli[0]
+                new_dataset.loc[index, "eli_text"] = eli[1]
+                new_dataset.loc[index, "eli_user"] = eli[2]
 
             index = index + 1
+            print('doslo do csv ', i)
+            new_dataset.to_csv("newDataset3.csv", index=False)
+
+
         except IndexError:
             _ = 0
 
 
 
-        print(pattern, " ", df.at[i,'tweet_id'])
-        df.loc[i, 'pattern'] = pattern
+        #print(pattern, " ", df.at[i,'tweet_id'])
+        #df.loc[i, 'pattern'] = pattern
 
-        if i % 10 == 0:
-            df.to_csv("filtered.csv", index=False)
-            new_dataset.to_csv("newDataset.csv")
-            print("Wrote to csv ", i)
+        #if i % 10 == 0:
+            #df.to_csv("filtered.csv", index=False)
+            #new_dataset.to_csv("newDataset1.csv")
+            #print("Wrote to csv ", i)
 
     return
 
