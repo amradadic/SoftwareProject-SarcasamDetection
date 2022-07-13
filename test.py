@@ -2,7 +2,7 @@
 import pandas as pd
 from utils import preprocessing
 from sklearn.model_selection import train_test_split
-from utils import predictions as pf
+from utils import metrics as pf
 from sklearn import svm
 from sklearn import metrics as m
 from tensorflow.keras.layers import Embedding
