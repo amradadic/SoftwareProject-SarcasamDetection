@@ -24,14 +24,14 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\novi.csv">
+        <entry key="\newDataset3.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\replies_clean.csv">
+        <entry key="\novi.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

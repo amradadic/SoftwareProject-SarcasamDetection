@@ -5,12 +5,12 @@ import time
 import os
 import json
 
+bearer_token = 'AAAAAAAAAAAAAAAAAAAAAModewEAAAAAXDLH1uGk8WWWG4uybT%2BXx5heUFA%3DFVHX36WTXcC9SQlFtCSHtKvnEs2jnsqwsHOloDx05M50WuoVM7'
 bearer_token1 = 'AAAAAAAAAAAAAAAAAAAAAI3qcQEAAAAA4PAEfL%2ByQCQVQJpHQdNdCoBtlS0%3DvNGdgosAW0lrgv5t8alZ2buQSRfdIYVNT4KCw1Xyvql09qulAS'
 bearer_token2 = 'AAAAAAAAAAAAAAAAAAAAADHdeQEAAAAA1fULSAYvk4vB8hY%2BIRJ3EUS8Fmw%3DYr812SYAW6b5iSR6RGG2b0CiFn3Jmsiq4tNVxSuBoy8FH49L9N'
-bearer_token = 'AAAAAAAAAAAAAAAAAAAAAGbdeQEAAAAAqq53KCc07nzEaXdx5klEfDz5kSg%3DMLSwjOmHtNDyaUJyFsOYSHZWX8nquFevVBN38xH2ORV8ML6Q64'
-bearer_token4 = 'AAAAAAAAAAAAAAAAAAAAAO7ceQEAAAAAugIqXpl9NBP3jAIRYoAc1o7UemY%3DnUka08SDZm7Dvnm3O23KgTioQjhj99YI0PMptrFr9WowqGaaab'
-BEGIN = 1414
-
+bearer_token3 = 'AAAAAAAAAAAAAAAAAAAAAGbdeQEAAAAAqq53KCc07nzEaXdx5klEfDz5kSg%3DMLSwjOmHtNDyaUJyFsOYSHZWX8nquFevVBN38xH2ORV8ML6Q64'
+#bearer_token4 = 'AAAAAAAAAAAAAAAAAAAAAO7ceQEAAAAAugIqXpl9NBP3jAIRYoAc1o7UemY%3DnUka08SDZm7Dvnm3O23KgTioQjhj99YI0PMptrFr9WowqGaaab'
+BEGIN = 11303
 def bearer_oauth(r):
     r.headers["Authorization"] = f"Bearer {bearer_token}"
     r.headers["User-Agent"] = "v2RecentSearchPython"
@@ -19,6 +19,7 @@ def bearer_oauth(r):
 
 
 def connect_to_endpoint(url, params):
+
     response = requests.get(url, auth=bearer_oauth, params=params)
 
     while response.status_code == 429:
@@ -125,7 +126,9 @@ def defineExpressionsForTweet():
     index = new_dataset.shape[0]
     raw_index = raw_dataset.shape[0]
     for i in range(BEGIN, df.shape[0]):  #df.shape[0]
+
         replies_list = getThreadRecursively(df.at[i,'tweet_id'])
+
         pattern = ''
         #replies_list.reverse()
         author_id_list = {}
@@ -149,7 +152,7 @@ def defineExpressionsForTweet():
 
         index_list_types = recognizeTypeOfTweet(pattern, replies_list)
 
-        print(index_list_types, pattern, replies_list)
+        print(i, index_list_types, pattern, replies_list)
 
         if len(index_list_types) < 4 or len(pattern) < 1:
             continue

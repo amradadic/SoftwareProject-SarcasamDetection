@@ -4,7 +4,7 @@ import json
 
 # To set your environment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
-bearer_token = 'AAAAAAAAAAAAAAAAAAAAAI3qcQEAAAAA4PAEfL%2ByQCQVQJpHQdNdCoBtlS0%3DvNGdgosAW0lrgv5t8alZ2buQSRfdIYVNT4KCw1Xyvql09qulAS'
+bearer_token = 'AAAAAAAAAAAAAAAAAAAAAGbdeQEAAAAAqq53KCc07nzEaXdx5klEfDz5kSg%3DMLSwjOmHtNDyaUJyFsOYSHZWX8nquFevVBN38xH2ORV8ML6Q64'
 
 
 #curl --request GET \
@@ -21,16 +21,16 @@ search_url = "https://api.twitter.com/2/tweets/search/recent"
 #pokusaj amra
 ids = '1540746631515103232 -is:retweet -is:quote'
 expansions = 'author_id,in_reply_to_user_id,referenced_tweets.id'
-#fields = 'author_id,conversation_id,created_at,in_reply_to_user_id,referenced_tweets'
+fields = 'author_id,conversation_id,created_at,in_reply_to_user_id,referenced_tweets'
 
 userfields = 'name,username'
-#query_params = {'ids' : ids, 'tweet.fields' :fields, 'expansions' : expansions, 'user.fields': userfields}
+query_params = {'ids' : ids, 'tweet.fields' :fields, 'expansions' : expansions, 'user.fields': userfields}
 
 #pokusaj esma
-expansions = 'referenced_tweets.id,in_reply_to_user_id'
-fields = 'in_reply_to_user_id,author_id,created_at,conversation_id'
+#expansions = 'referenced_tweets.id,in_reply_to_user_id'
+#fields = 'in_reply_to_user_id,author_id,created_at,conversation_id'
 
-query_params = {'query': ids, 'tweet.fields' :fields, 'expansions' : expansions}
+#query_params = {'query': ids, 'tweet.fields' :fields, 'expansions' : expansions}
 
 #
 #userfields = 'name,username'
