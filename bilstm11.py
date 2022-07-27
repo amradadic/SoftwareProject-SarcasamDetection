@@ -1,27 +1,13 @@
 #%%
 #BiLSTM PYTORCH
-from nltk.corpus import stopwords 
-from collections import Counter
-import string
-import re
-from unicodedata import bidirectional
 import numpy as np
 import pandas as pd
 from utils import preprocessing
-from sklearn.model_selection import train_test_split
-from keras.preprocessing.text import Tokenizer
-from keras_preprocessing.sequence import pad_sequences
-from sklearn.metrics import classification_report
 import torch #pytorch
 import torch.nn as nn
-from torch.autograd import Variable 
-import torch.optim as optim
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.utils.data import (
     DataLoader, TensorDataset
 ) 
-import torch.nn.functional as F
-import torch.optim as optim
 import matplotlib.pyplot as plt
 
 #%%
@@ -37,92 +23,46 @@ else:
     
 #%%
 
-df_SPIRS_sarcastic = pd.read_csv('SPIRS-sarcastic (1).csv')
-df_SPIRS_non_sarcastic = pd.read_csv('SPIRS-non-sarcastic (1).csv')
+x_train2 = pd.read_csv('split/x_train_new.csv',converters = {'sar_text': str})
+x_test2 = pd.read_csv('split/x_test_new.csv',converters = {'sar_text': str})
+x_val2 = pd.read_csv('split/x_val_new.csv',converters = {'sar_text': str})
+y_train2 = pd.read_csv('split/y_train_new.csv')
+y_test2 = pd.read_csv('split/y_test_new.csv')
+y_val2 = pd.read_csv('split/y_val_new.csv')
 
-#remove NAs from sar_text
-df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'sar_text')
-df_SPIRS_non_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_non_sarcastic, 'sar_text')
-
-#fill na from other columns
-df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'eli_text')
-df_SPIRS_non_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_non_sarcastic, 'eli_text')
-
-df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'obl_text')
-df_SPIRS_non_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_non_sarcastic, 'obl_text')
-
-df_SPIRS_sarcastic = preprocessing.fill_na_from_column(df_SPIRS_sarcastic, 'cue_text')
-#non sar has no cue text
-
-#get context
-#df_SPIRS_sarcastic = preprocessing.get_df_context(df_SPIRS_sarcastic, cue = False)
-#df_SPIRS_non_sarcastic = preprocessing.get_df_context(df_SPIRS_non_sarcastic, cue = False)
-
-
-#df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'eli_text')
-#df_SPIRS_non_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_non_sarcastic, 'eli_text')
-
-#df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'obl_text')
-#df_SPIRS_non_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_non_sarcastic, 'obl_text')
-
-#df_SPIRS_sarcastic = preprocessing.remove_na_from_column(df_SPIRS_sarcastic, 'cue_text')
-#non sar has no cue text
-
-
-#preprocess columns
-df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'sar_text')
-df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'sar_text')
-
-#df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'eli_text')
-#df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'eli_text')
-
-#df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'obl_text')
-#df_SPIRS_non_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_non_sarcastic, 'obl_text')
-
-#df_SPIRS_sarcastic = preprocessing.preprocess_tweets(df_SPIRS_sarcastic, 'cue_text')
-#non sar has no cue text
-
-#without context
-df_SPIRS_sarcastic = df_SPIRS_sarcastic[['sar_text']]
-df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic[['sar_text']]
-
-#with context
-
-#add labels
-df_SPIRS_sarcastic = df_SPIRS_sarcastic.assign(label=1)
-df_SPIRS_non_sarcastic = df_SPIRS_non_sarcastic.assign(label=0)
-
-#concat
-df_SPIRS = pd.concat([df_SPIRS_sarcastic, df_SPIRS_non_sarcastic], ignore_index=True)
-
-#test train split
-
-#for context
-#df_SPIRS_X = preprocessing.concat_df(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])], 'sar_text')
-#df_SPIRS_Y = df_SPIRS[['label']]
-#%%
-#x, x_test2, y, y_test2 = train_test_split(df_SPIRS_X,df_SPIRS_Y,test_size=0.2,train_size=0.8, shuffle=True)
-#x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9,shuffle=True)
-#%%
-x, x_test2, y, y_test2 = train_test_split(df_SPIRS.loc[:, ~df_SPIRS.columns.isin(['sar_id', 'label'])],df_SPIRS[['label']],test_size=0.15,train_size=0.85)
-x_train2, x_val2, y_train2, y_val2 = train_test_split(x,y,test_size = 0.1,train_size =0.9)
-
-#%%
 print(f'shape of train data is {x_train2.shape}')
 print(f'shape of val data is {x_val2.shape}')
 print(f'shape of test data is {x_test2.shape}')
+print(f'shape of train data is {y_train2.shape}')
+print(f'shape of val data is {y_val2.shape}')
+print(f'shape of test data is {y_test2.shape}')
+
 
 #%%
-#x_train,y_train,x_val,y_val,vocab = tockenize(x_train2['sar_text'],y_train2['label'],x_val2['sar_text'],y_val2['label'])
-#x_temp,y_temp,x_test,y_test,vocab = tockenize(x_train2['sar_text'],y_train2['label'],x_test2['sar_text'],y_test2['label'])
+#no context
+x_train2 = x_train2[['sar_text']]
+x_test2 = x_test2[['sar_text']]
+x_val2 = x_val2[['sar_text']]
 
-# %%
-tokenizer, dictionary = preprocessing.get_dictionary(x_train2, 5000)
+#context
+#x_train2 = x_train2[['sar_text', 'eli_text', 'obl_text']]
+#x_test2 = x_test2[['sar_text', 'eli_text', 'obl_text']]
+#x_val2 = x_val2[['sar_text', 'eli_text', 'obl_text']]
+
+#%%
+#x_train2 = preprocessing.concat_df(x_train2, 'sar_text')
+#x_val2 = preprocessing.concat_df(x_val2, 'sar_text')
+#x_test2 = preprocessing.concat_df(x_test2, 'sar_text')
+
+#%%
+#creating glove embedding
+tokenizer, dictionary = preprocessing.get_dictionary(x_train2)
 embedding = preprocessing.get_glove_embedding_BiLSTM(dictionary)
 
 vocab = dictionary
 print(f'Length of vocabulary is {len(vocab)}')
 #%%
+#train, validation and test tensors
 X_train_indices = tokenizer.texts_to_sequences(x_train2['sar_text'])
 X_val_indices = tokenizer.texts_to_sequences(x_val2['sar_text'])
 X_test_indices = tokenizer.texts_to_sequences(x_test2['sar_text'])
@@ -135,15 +75,15 @@ def padding_(sentences, seq_len):
             features[ii, -len(review):] = np.array(review)[:seq_len]
     return features
 
-#we have very less number of reviews with length > 500.
-#So we will consideronly those below it.
+#we have very less number of reviews with length > 50.
+
 #x_train_pad = padding_(x_train,100)
 #x_val_pad = padding_(x_val,100)
 #x_test_pad = padding_(x_test,100)
 
-x_train_pad = padding_(np.array(X_train_indices),100)
-x_val_pad = padding_(np.array(X_val_indices),100)
-x_test_pad = padding_(np.array(X_test_indices),100)
+x_train_pad = padding_(np.array(X_train_indices),50)
+x_val_pad = padding_(np.array(X_val_indices),50)
+x_test_pad = padding_(np.array(X_test_indices),50)
 # %%
 # create Tensor datasets
 train_data = TensorDataset(torch.from_numpy(x_train_pad), torch.from_numpy(y_train2['label'].to_numpy()))
@@ -153,24 +93,28 @@ test_data = TensorDataset(torch.from_numpy(x_test_pad), torch.from_numpy(y_test2
 # dataloaders
 batch_size = 64
 
-# make sure to SHUFFLE your data
 train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size, drop_last=True)
 valid_loader = DataLoader(valid_data, shuffle=True, batch_size=batch_size, drop_last=True)
 test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size, drop_last=True)
 # %%
+#BiLSTM network definition
 class SentimentRNN(nn.Module):
     def __init__(self,no_layers,vocab_size,hidden_dim,embedding_dim,drop_prob=0.5):
         super(SentimentRNN,self).__init__()
  
+        #output_dim = 1, hidden_dim = 1
         self.output_dim = output_dim
         self.hidden_dim = hidden_dim
  
+        #no_layers = 2, vocab_size = len(dictionary)
         self.no_layers = no_layers
         self.vocab_size = vocab_size
     
         # embedding and LSTM layers
+        #embedding_dim = 200
+        #embedding - pretrained glove - matrix (30688, 200)
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.embedding.weight = nn.Parameter(torch.from_numpy(embedding).float(),requires_grad=True)
+        self.embedding.weight = nn.Parameter(torch.from_numpy(embedding).float(),requires_grad=False)
         
         
         #lstm
@@ -183,21 +127,23 @@ class SentimentRNN(nn.Module):
    #     self.dropout = nn.Dropout(0.3)
    # 
         # linear and sigmoid layer
-        self.fc = nn.Linear(self.hidden_dim, output_dim)
+        self.fc = nn.Linear(self.hidden_dim//4, output_dim)
         self.sig = nn.Sigmoid()
         
     def forward(self,x,hidden):
         batch_size = x.size(0)
         # embeddings and lstm_out
-        embeds = self.embedding(x)  # shape: B x S x Feature   since batch = True
-        #print(embeds.shape)  #[50, 500, 1000]
+        embeds = self.embedding(x) 
+        
         lstm_out, hidden = self.lstm(embeds, hidden)
         
         lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim) 
         
-    #    # dropout and fully connected layer
-   #     out = self.dropout(lstm_out)
-        out = self.fc(lstm_out)
+        pooled = self.maxpool(lstm_out)
+        
+        #linear layer
+      #  out = self.fc(lstm_out)
+        out = self.fc(pooled)
         
         # sigmoid function
         sig_out = self.sig(out)
@@ -214,17 +160,16 @@ class SentimentRNN(nn.Module):
         
     def init_hidden(self, batch_size):
         ''' Initializes hidden state '''
-        # Create two new tensors with sizes n_layers x batch_size x hidden_dim,
-        # initialized to zero, for hidden state and cell state of LSTM
         h0 = torch.zeros((self.no_layers * 2,batch_size,self.hidden_dim)).to(device)
         c0 = torch.zeros((self.no_layers * 2,batch_size,self.hidden_dim)).to(device)
         hidden = (h0,c0)
         return hidden
 
 #%%
+#hyperparameters
 no_layers = 2
-vocab_size = len(vocab) + 1 #extra 1 for padding
-embedding_dim = 100
+vocab_size = len(vocab)
+embedding_dim = 200
 output_dim = 1
 hidden_dim = 256
 
@@ -249,9 +194,10 @@ def acc(pred,label):
     return torch.sum(pred == label.squeeze()).item()
 
 #%%
+#training
 clip = 5
 epochs = 5
-valid_loss_min = np.Inf
+valid_loss_min = 0
 # train for some number of epochs
 epoch_tr_loss,epoch_vl_loss = [],[]
 epoch_tr_acc,epoch_vl_acc = [],[]
@@ -275,7 +221,7 @@ for epoch in range(epochs):
         # calculate the loss and perform backprop
         loss = criterion(output.squeeze(), labels.float())
         loss.backward()
-        train_losses.append(loss.item())
+     #   train_losses.append(loss.item())
         # calculating accuracy
         accuracy = acc(output,labels)
         train_acc += accuracy
@@ -302,7 +248,8 @@ for epoch in range(epochs):
             accuracy = acc(output,labels)
             val_acc += accuracy
             
-    epoch_train_loss = np.mean(train_losses)
+ #   epoch_train_loss = np.mean(train_losses)
+    epoch_train_loss = 0
     epoch_val_loss = np.mean(val_losses)
     epoch_train_acc = train_acc/len(train_loader.dataset)
     epoch_val_acc = val_acc/len(valid_loader.dataset)
@@ -313,13 +260,14 @@ for epoch in range(epochs):
     print(f'Epoch {epoch+1}') 
     print(f'train_loss : {epoch_train_loss} val_loss : {epoch_val_loss}')
     print(f'train_accuracy : {epoch_train_acc*100} val_accuracy : {epoch_val_acc*100}')
-    if epoch_val_loss <= valid_loss_min:
+    if epoch_val_acc >= valid_loss_min:
         torch.save(model.state_dict(), './state_dict.pt')
         print('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model ...'.format(valid_loss_min,epoch_val_loss))
-        valid_loss_min = epoch_val_loss
+        valid_loss_min = epoch_val_acc
     print(25*'==')
     
 #%%
+#plotting loss and accuracy
 fig = plt.figure(figsize = (20, 6))
 plt.subplot(1, 2, 1)
 plt.plot(epoch_tr_acc, label='Train Acc')
@@ -339,7 +287,7 @@ plt.show()
 
 
 #%%
-
+#loading the best model and testing
 model.load_state_dict(torch.load('./state_dict.pt'), strict=False)
 
 test_losses = []
@@ -349,6 +297,9 @@ TP = 0
 TN = 0
 FP = 0
 FN = 0
+
+bilstm_predictions = []
+true_labels = []
 
 model.eval()
 for inputs, labels in test_loader:
@@ -361,10 +312,14 @@ for inputs, labels in test_loader:
     correct_tensor = pred.eq(labels.float().view_as(pred))
     correct = np.squeeze(correct_tensor.cpu().numpy())
     
+  #  print(pred.cpu().detach().numpy())
     
+    #calculating metrics
     for i in range(0, len(pred)):
         prediction = pred.cpu().detach().numpy()[i]
         true = labels[i]
+        bilstm_predictions.append(prediction)
+        true_labels.append(true)
         
         if prediction == 1 and true == 1 :
             TP += 1
@@ -390,7 +345,12 @@ recall = TP / (TP + FN)
 print("Recal:", recall)
 print("F1", 2 * (precision * recall) / (precision + recall))
 
-# %%
 
 #%%
-from sklearn.model_selection import KFold
+#JSON file
+#metrics_context = pf.metrics(true_labels, bilstm_predictions, target_names=['Non-sarcastic', 'Sarcastic'])
+#print(metrics_context)
+
+#df = pd.DataFrame({'sar_id': df_SPIRS['sar_id'][len(x_train2['sar_text'])], 'label': true_labels, 'predicted_value': bilstm_predictions})
+#pf.json_metrics("json\SVMmetrics_GloVe_context.json", "SVM - LinearSVC with context", "Glove", metrics_context, df)
+# %%
