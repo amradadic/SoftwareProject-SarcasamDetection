@@ -13,7 +13,7 @@ print(df_SPIRS_sarcastic.info())
 print("\nNon-sarcastic tweets df info:")
 print(df_SPIRS_non_sarcastic.info())
 
-
+#%%
 ##PREPROCESSING
 
 #make new dataframe - only tweets and labels, both sarcastic and nonsarcastic tweets
@@ -29,18 +29,19 @@ df_SPIRS = pd.concat([dataset_nonsarcasm, dataset_sarcasm], ignore_index=True)
 print(df_SPIRS.head())
 print('\n\n\n')
 
+#%%
 #removing rows with missing tweets
 df_SPIRS = preprocessing.remove_na_from_column(df_SPIRS, 'tweet')
 
 #preprocessing tweets
 df_SPIRS_no_emojis = df_SPIRS.copy()
-df_SPIRS_no_emojis = preprocessing.preprocess_tweets(df_SPIRS_no_emojis, keep_emoji=False)
+df_SPIRS_no_emojis = preprocessing.preprocess_tweets(df_SPIRS_no_emojis, column_name='tweet', keep_emoji=False)
 
-df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS)
+df_SPIRS = preprocessing.preprocess_tweets(df_SPIRS, column_name='tweet')
 print(df_SPIRS.head())
 
 
-
+#%%
 
 ##ANALYSIS
 
@@ -65,25 +66,26 @@ analysis.wordcloud(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1])
 #df_SPIRS = preprocessing.remove_nltk_stopwords(df_SPIRS)
 #df_SPIRS_no_emojis = preprocessing.remove_nltk_stopwords(df_SPIRS_no_emojis)
 
+#%%
 #ngrams of sarcastic with emojis
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 1, 20, "Common Unigrams in Text (sarcastic, with emojis)", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 1, 20, "Common Unigrams in Text (sarcastic, with emojis)", 1)
 #analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 2, 20, "Common Bigrams in Text (sarcastic, with emojis)", 2)
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 3, 20, "Common Trigrams in Text (sarcastic, with emojis)", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==1]['tweet'], 3, 20, "Common Trigrams in Text (sarcastic, with emojis)", 1)
 
 #ngrams of sarcastic without emojis
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 1, 20, "Common Unigrams in Text (sarcastic, without emojis)",2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 1, 20, "Common Unigrams in Text (sarcastic, without emojis)",1)
 #analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 2, 20, "Common Bigrams in Text (sarcastic, without emojis)", 2)
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 3, 20, "Common Trigrams in Text (sarcastic, without emojis)", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==1]['tweet'], 3, 20, "Common Trigrams in Text (sarcastic, without emojis)", 1)
 
 #ngrams of nonsarcastic with emojis
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==0]['tweet'], 1, 20, "Common Unigrams in Text (nonsarcastic, with emojis)", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==0]['tweet'], 1, 20, "Common Unigrams in Text (nonsarcastic, with emojis)", 1)
 #analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==0]['tweet'], 2, 20, "Common Bigrams in Text (nonsarcastic, with emojis)", 2)
-analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==0]['tweet'], 3, 20, "Common Trigrams in Text (nonsarcastic, with emojis)", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS[df_SPIRS.label==0]['tweet'], 3, 20, "Common Trigrams in Text (nonsarcastic, with emojis)", 1)
 
 #ngrams of nonsarcastic without emojis
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==0]['tweet'], 1, 20, "Common Unigrams in Text (nonsarcastic, without emojis)",2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==0]['tweet'], 1, 20, "Common Unigrams in Text (nonsarcastic, without emojis)",1)
 #analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==0]['tweet'], 2, 20, "Common Bigrams in Text (nonsarcastic, without emojis)", 2)
-analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==0]['tweet'], 3, 20, "Common Trigrams in Text (nonsarcastic, without emojis)", 2)
+analysis.draw_plot_for_common_ngrams(df_SPIRS_no_emojis[df_SPIRS_no_emojis.label==0]['tweet'], 3, 20, "Common Trigrams in Text (nonsarcastic, without emojis)", 1)
 
 
 # %%
