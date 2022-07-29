@@ -2,6 +2,7 @@ import re
 import requests
 import pandas as pd
 import time
+
 import os
 import json
 
@@ -78,9 +79,9 @@ def recognizeTypeOfTweet(thread_pattern, list):
 
     tweet_text =  list[0][1]
     lice = 0
-    if re.match("(A)([^A]*)(A)([^A]*)$", thread_pattern) and (('I was' in tweet_text.lower())
-                                                              or ('I am' in tweet_text.lower())
-                                                              or ('I\'m' in tweet_text.lower())):
+    if re.match("(A)([^A]*)(A)([^A]*)$", thread_pattern) and (('i was' in tweet_text.lower())
+                                                              or ('i am' in tweet_text.lower())
+                                                              or ('i\'m' in tweet_text.lower())):
 
         index_of_A = ([pos for pos, char in enumerate(thread_pattern) if char == 'A'])
 
