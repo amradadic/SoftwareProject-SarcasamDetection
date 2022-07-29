@@ -6,6 +6,8 @@ utils/analysis.py - functions for data analysis
 
 utils/predictions.py - functions for predictions
 
+/json - json file with models' predictions
+
 /analysis.py - main dataset analysis
 
 /svm.py - SVM classification
