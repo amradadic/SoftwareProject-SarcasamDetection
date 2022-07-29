@@ -6,11 +6,10 @@ utils/analysis.py - functions for data analysis
 
 utils/predictions.py - functions for predictions
 
-/json - json file with models' predictions
+/json - json files with models' predictions
 
 /analysis.py - main dataset analysis
 
-/svm.py - SVM classification
 
 
 GLOVE EMBEDDINGS: glove.twitter.27B.100d embedding file must be manually added because it exceeds limit size
